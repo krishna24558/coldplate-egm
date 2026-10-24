@@ -1,0 +1,9 @@
+parameter,value,unit,source_in_paper
+channel_width,231e-6,m,abstract
+channel_depth,713e-6,m,abstract
+n_channels,21,-,
+wall_thickness,,m,
+channel_length,,m,
+base_thickness,,m,
+heated_width,,m,
+heated_length,,m,

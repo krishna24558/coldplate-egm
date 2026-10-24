@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "coldplate"
+version = "0.1.0"
+description = "Second-law analysis and optimization of a liquid-cooled microchannel cold plate"
+requires-python = ">=3.10"
+dependencies = ["numpy", "scipy", "matplotlib", "CoolProp"]
+
+[tool.setuptools]
+packages = ["coldplate"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
