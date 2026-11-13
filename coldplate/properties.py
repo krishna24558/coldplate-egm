@@ -41,3 +41,7 @@ def entropy(T: float, P: float, fluid: str = "Water") -> float:
 def temperature_from_hP(h: float, P: float, fluid: str = "Water") -> float:
     """Temperature (K) from enthalpy and pressure; used to get the outlet state."""
     return PropsSI("T", "H", h, "P", P, fluid)
+
+
+def viscosity(T: float, P: float, fluid: str = "Water") -> float:
+    return PropsSI("V", "T", T, "P", P, fluid)

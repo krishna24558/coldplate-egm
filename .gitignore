@@ -8,3 +8,6 @@ venv/
 .DS_Store
 .vscode/
 .idea/
+
+# publisher PDFs stay local (copyright)
+validation/data/raw/*.pdf

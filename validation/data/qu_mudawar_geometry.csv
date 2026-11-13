@@ -1,9 +1,18 @@
-parameter,value,unit,source_in_paper
-channel_width,231e-6,m,abstract
-channel_depth,713e-6,m,abstract
-n_channels,21,-,
-wall_thickness,,m,
-channel_length,,m,
-base_thickness,,m,
-heated_width,,m,
-heated_length,,m,
+parameter,value,unit,status,paper_location,verified_against_pdf,notes
+heat_sink_top_width,0.0100,m,measured,"Sec. 2.2",no,"planform (top) surface 1.0 cm wide"
+heat_sink_top_length,0.0448,m,measured,"Sec. 2.2; Eq. (1)",no,"planform 4.48 cm long"
+n_channels,21,-,measured,"Sec. 2.2",no,"twenty-one micro-slots cut by precision sawing"
+channel_width_Wch,231e-6,m,measured,"Abstract; Sec. 2.2; Table 1",no,
+channel_depth_Hch,713e-6,m,measured,"Abstract; Table 1",no,"Sec. 2.2 states 712 um; check which Table 1 uses"
+wall_half_width_Ww,118e-6,m,measured,"Table 1",no,"Table 1 row extracted as '118 231 12 700 713 5637 3175'; read as Ww=118, Wch=231, Hw1=12700, Hch=713, Hw2=5637, Hth=3175 um. Confirm column alignment in the PDF"
+wall_thickness,236e-6,m,derived,"= 2 x Ww (Table 1)",no,"check: 21 x (231 + 236) um = 9.81 mm, close to the 1.0 cm planform width"
+cover_plate_thickness_Hw1,12700e-6,m,measured,"Table 1; Nomenclature",no,"depends on the Table 1 reading above"
+bottom_to_channel_bottom_Hw2,5637e-6,m,measured,"Table 1; Nomenclature",no,"unit-cell bottom wall to channel bottom wall"
+thermocouple_plane_Hth,3175e-6,m,measured,"Table 1; Eq. (27)",no,"Hth is not defined in the Nomenclature; Eq. (27) uses z = Hth for the thermocouple plane. Interpreted as height of the thermocouple plane above the unit-cell bottom"
+tc_depth_below_channel_bottom,2462e-6,m,derived,"= Hw2 - Hth",no,"valid only if the Hth interpretation is right"
+channel_length_L,0.044764,m,measured,"Table 1 (L)",no,"unit-cell length; matches the 4.48 cm planform length"
+solid_material,oxygen-free copper,-,measured,"Sec. 2.2",no,
+solid_conductivity,401,W/m-K,measured,"Sec. 3.3",no,"value used in the paper's numerical model"
+cover_plate_material,polycarbonate (Lexan),-,measured,"Sec. 2.2",no,"bolted on top: channels heated on three sides, top nearly adiabatic"
+cover_plate_conductivity,0.2,W/m-K,measured,"Sec. 3.3",no,
+heater,12 cartridge heaters in 6.35 mm holes,-,measured,"Sec. 2.2",no,"heat enters from below the channels"

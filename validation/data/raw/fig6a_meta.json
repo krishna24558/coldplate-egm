@@ -1,0 +1,66 @@
+{
+ "panel": "fig6a",
+ "page": 9,
+ "calibration": {
+  "x1": [
+   859.0,
+   1494.3861015695813,
+   200
+  ],
+  "x2": [
+   1979.5,
+   1492.2518540384517,
+   1600
+  ],
+  "y1": [
+   699.536792010073,
+   1414.5,
+   20
+  ],
+  "y2": [
+   698.6991071428569,
+   934.0,
+   80
+  ],
+  "logX": false,
+  "logY": false
+ },
+ "x_tick_residual_px": 1.2142857142853245,
+ "y_tick_residual_px": 0.3000000000001819,
+ "px_per_x_unit": 0.7996428571428571,
+ "px_per_y_unit": 8.00499999999999,
+ "templates": {
+  "square": {
+   "shape_px": [
+    19,
+    19
+   ],
+   "n_examples": 8
+  },
+  "diamond": {
+   "shape_px": [
+    26,
+    25
+   ],
+   "n_examples": 6
+  },
+  "tri_up": {
+   "shape_px": [
+    19,
+    22
+   ],
+   "n_examples": 7
+  },
+  "tri_down": {
+   "shape_px": [
+    19,
+    22
+   ],
+   "n_examples": 13
+  }
+ },
+ "n_markers": 114,
+ "n_partly_hidden": 14,
+ "unexplained_ink_blobs_over_60px": 2,
+ "wpd_blob_check_max_dpx": 4.0
+}
