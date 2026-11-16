@@ -91,10 +91,21 @@ Model and tests by Nov 3 (done Nov 8, late), validation and second-law module by
 - Tests: 45 passed (Linux).
 - After the PDF arrived: digitized Figs. 4(a), 5, 6(a), 6(b) (headless WebPlotDigitizer calibration + blob detection, template matching for overlapping markers; `validation/digitize/`); compared 24 thermal and 12 friction combinations; added the wall-viscosity correction (A10), which was needed for ΔP; made the selected models the defaults; reran the studies. Tests: 51 passed (about 4 min; the validation tests run the benchmark).
 
+
+## Added 2026-11-13 to 2026-11-16 (outside Claude Code)
+
+- Data recheck: `validation/data/raw/recheck_log.md` (no values changed; one status corrected; geometry/conditions/sensors `verified_against_pdf = yes`).
+- Geometry figures: `figures/geometry_3d_design.png`, `figures/geometry_design_vs_qm.png` (script `analysis/make_geometry_figures.py`).
+- `docs/design_case_justification.md`: design values vs published cold plates (with references), and why the benchmark validates the design case (dimensionless comparison; the aspect ratio H/w_c = 15 vs 3.1 is an extrapolation).
+- `docs/team_tasks.md`: Suneel (hand check of digitized data, introduction background), Sam (hand calculation of the reference design, presentation outline). Not on the critical path.
+- `docs/claude_code_plan.md`: phased plan for finishing the project in Claude Code (Phase 1 technical work, Phase 2 figures, Phase 3 report, Phase 4 wrap-up).
+- Resume entry uses "60 % less pumping power" (rounded down from 63 %); update if Phase 1 changes the Study 2 numbers.
+
 ## Next task
 
-1. **Hard check of the digitized data** (person): open `validation/data/raw/fig4a_overlay.png`, `fig5_overlay.png`, `fig6a_overlay.png`, `fig6b_overlay.png`; every marker should carry one circle in its shape colour (square red, diamond green, up-triangle blue, down-triangle orange); magenta boxes are partly hidden repeat markers. Spot-check 5–10 values per figure in the browser WebPlotDigitizer. Record the check in `validation/README.md`.
-2. Verify the geometry/conditions CSVs against the PDF and set `verified_against_pdf = yes`.
+0. Data recheck done 2026-11-13 (`validation/data/raw/recheck_log.md`): no values changed, one status corrected, geometry/conditions/sensors verified against the PDF; thermocouple MAPE 4.61 %.
+1. **Hard check of the digitized data** (person, still recommended): open `validation/data/raw/fig4a_overlay.png`, `fig5_overlay.png`, `fig6a_overlay.png`, `fig6b_overlay.png`; every marker should carry one circle in its shape colour (square red, diamond green, up-triangle blue, down-triangle orange); magenta boxes are partly hidden repeat markers. Spot-check 5–10 values per figure in the browser WebPlotDigitizer. Record the check in `validation/README.md`.
+2. ~~Verify the geometry/conditions CSVs against the PDF~~ done in the recheck (outlet pressure is not reported).
 3. Check the Kays & Crawford property-ratio exponents in the original table (now quoted via the `ht` library).
 4. Report: use `figures/validation_vs_Re.png` and `figures/validation_parity.png`; state the ΔP limitation (D5).
 5. D8 (0.1 mm bound) and D7 remain open for the report.

@@ -1,21 +1,21 @@
 parameter,value,unit,status,paper_location,verified_against_pdf,notes
-fluid,deionized water,-,measured,"Abstract; Sec. 2.1",no,
-inlet_temperature,15,degC,measured,"Sec. 2.3",no,"extracted text reads 'water inlet temperature was set to 15'; confirm the unit and that it applies to both heat flux levels"
-q_eff_level_1,100,W/cm2,measured,"Abstract; Sec. 2.3",no,
-q_eff_level_2,200,W/cm2,measured,"Abstract; Sec. 2.3",no,
-q_eff_definition,q_eff = P_W / A_t,-,measured,"Sec. 2.3, Eq. (1)",no,"P_W = wattmeter electric power; A_t = top planform area"
-planform_area_At,4.48e-4,m2,measured,"Sec. 2.3, Eq. (1)",no,"1.0 x 4.48 cm2"
-power_at_100_W_cm2,448,W,derived,"= q_eff x A_t",no,
-power_at_200_W_cm2,896,W,derived,"= q_eff x A_t",no,
-Re_range_100_W_cm2,139-1672,-,measured,"Abstract; Sec. 2.3",no,
-Re_range_200_W_cm2,385-1289,-,measured,"Abstract; Sec. 2.3",no,
-flow_range_100_W_cm2,93.5-1136.4,ml/min,measured,"Sec. 2.3",no,
-flow_range_200_W_cm2,259.1-859.5,ml/min,measured,"Sec. 2.3",no,
-max_measured_dP,0.86,bar,measured,"Sec. 3.2",no,"at 100 W/cm2 and Re = 1672"
-heat_loss,<1,% of input,measured,"Sec. 2.4",no,
-uncertainty_wattmeter,0.5,%,measured,"Sec. 2.4",no,
-uncertainty_rotameter,4,%,measured,"Sec. 2.4",no,
-uncertainty_pressure_transducer,3.5,%,measured,"Sec. 2.4",no,
-uncertainty_thermocouple,0.3,degC,measured,"Sec. 2.4",no,
-steady_state_criterion,readings at 15 min intervals after 30-60 min,-,measured,"Sec. 2.3",no,
-outlet_or_system_pressure,,Pa,missing,,no,"needed for property evaluation; not found in extracted text"
+fluid,deionized water,-,measured,Abstract; Sec. 2.1,yes,
+inlet_temperature,15,degC,measured,Sec. 2.3,yes,Sec. 2.3: water inlet temperature was set to 15 degC (both heat fluxes)
+q_eff_level_1,100,W/cm2,measured,Abstract; Sec. 2.3,yes,
+q_eff_level_2,200,W/cm2,measured,Abstract; Sec. 2.3,yes,
+q_eff_definition,q_eff = P_W / A_t,-,measured,"Sec. 2.3, Eq. (1)",yes,P_W = wattmeter electric power; A_t = top planform area
+planform_area_At,4.48e-4,m2,measured,"Sec. 2.3, Eq. (1)",yes,1.0 x 4.48 cm2
+power_at_100_W_cm2,448,W,derived,= q_eff x A_t,yes,
+power_at_200_W_cm2,896,W,derived,= q_eff x A_t,yes,
+Re_range_100_W_cm2,139-1672,-,measured,Abstract; Sec. 2.3,yes,
+Re_range_200_W_cm2,385-1289,-,measured,Abstract; Sec. 2.3,yes,
+flow_range_100_W_cm2,93.5-1136.4,ml/min,measured,Sec. 2.3,yes,
+flow_range_200_W_cm2,259.1-859.5,ml/min,measured,Sec. 2.3,yes,
+max_measured_dP,0.86,bar,measured,Sec. 3.2,yes,at 100 W/cm2 and Re = 1672
+heat_loss,<1,% of input,measured,Sec. 2.4,yes,
+uncertainty_wattmeter,0.5,%,measured,Sec. 2.4,yes,
+uncertainty_rotameter,4,%,measured,Sec. 2.4,yes,
+uncertainty_pressure_transducer,3.5,%,measured,Sec. 2.4,yes,
+uncertainty_thermocouple,0.3,degC,measured,Sec. 2.4,yes,
+steady_state_criterion,readings at 15 min intervals after 30-60 min,-,measured,Sec. 2.3,yes,
+outlet_or_system_pressure,,Pa,missing,,no,needed for property evaluation; not found in extracted text

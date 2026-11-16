@@ -35,6 +35,9 @@ MEEN 615 course project (Texas A&M, Fall 2026): **Second-Law Analysis and Constr
 - `docs/equation_sheet.md`: equations, control volumes, assumptions, open questions
 - `validation/README.md`: benchmark inputs, data status, comparison rules
 - `coldplate/config.py`: the 1 kW application case (keep experiment inputs separate from it)
+- `docs/claude_code_plan.md`: the phased plan for finishing the project (which phase is next: see `docs/project_status.md`)
+- `docs/design_case_justification.md`: why the design values, and how the benchmark validates them
+- `validation/data/raw/recheck_log.md`: independent recheck of the digitized data
 
 ## Code map
 

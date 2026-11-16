@@ -117,7 +117,7 @@ Sec. 3.2 states a measured ΔP of 0.86 bar at 100 W/cm², Re = 1672. The model g
 
 ## Results (2026-11-08)
 
-Data: 43 ΔP points (Fig. 4a), 43 water-ΔT points (Fig. 5), 187 thermocouple rises (Fig. 6a/b), digitized as described above. Points partly hidden behind another marker (repeat runs) and one rejected point are kept in the CSVs with their own status and left out of the MAPE. Calibration checks: the last ΔP point reads 0.858 bar at Re 1670 (text: 0.86 bar at Re 1672); the Re ranges read 139–1670 and 386–1288 (text: 139–1672, 385–1289); major-tick spacing is linear to within 1.4 px; isolated markers agree with WebPlotDigitizer's own blob centroids to ≤ 1.5 px. **Still to do: the hard check by a person** (overlays `data/raw/fig*_overlay.png`).
+Data: 43 ΔP points (Fig. 4a), 43 water-ΔT points (Fig. 5), 187 thermocouple rises (Fig. 6a/b), digitized as described above. Points partly hidden behind another marker (repeat runs) and one rejected point are kept in the CSVs with their own status and left out of the MAPE. Calibration checks: the last ΔP point reads 0.858 bar at Re 1670 (text: 0.86 bar at Re 1672); the Re ranges read 139–1670 and 386–1288 (text: 139–1672, 385–1289); major-tick spacing is linear to within 1.4 px; isolated markers agree with WebPlotDigitizer's own blob centroids to ≤ 1.5 px. Independent recheck done 2026-11-13 (`data/raw/recheck_log.md`): no values changed, one status corrected, geometry/conditions/sensors verified against the PDF. **Still to do: a person's hand check** (Suneel, `docs/team_tasks.md`; overlays `data/raw/fig*_overlay.png`).
 
 Full matrix: `results/thermal_model_matrix.csv`, `results/dP_model_matrix.csv`. MAPE of thermocouple rise above inlet (157 points) and of ΔP (39 points); no coefficient tuned:
 
@@ -139,7 +139,7 @@ Water temperature rise (energy balance): 2.8–2.9 % for every model.
 | `MY` apparent + wall viscosity | **9.7 %** (bias +0.5 %) | 26.7 % (+27 %) |
 | `hagenbach` + wall viscosity | 9.8 % | 26.0 % |
 
-**Selected (now the `Models` defaults):** `MY_3` + axial conduction + wall-viscosity correction, `MY` apparent friction, thermocouple MAPE 4.6 % (both heat fluxes, `figures/validation_parity.png`), ΔP MAPE 9.7 %. Both are inside the proposal's 10–15 % target. `LG_3` gives the same thermal accuracy and is fully sourced (Eq. 15 of Lee & Garimella); `MY_3` was chosen because the paper's inlet is a uniform velocity (simultaneously developing flow) and because MY has no aspect-ratio limit, while the 1 kW design (H/w_c = 15–30) is outside LG's fitted range 1–10.
+**Selected (now the `Models` defaults):** `MY_3` + axial conduction + wall-viscosity correction, `MY` apparent friction, thermocouple MAPE 4.6 % (4.61 % after the recheck status change) (both heat fluxes, `figures/validation_parity.png`), ΔP MAPE 9.7 %. Both are inside the proposal's 10–15 % target. `LG_3` gives the same thermal accuracy and is fully sourced (Eq. 15 of Lee & Garimella); `MY_3` was chosen because the paper's inlet is a uniform velocity (simultaneously developing flow) and because MY has no aspect-ratio limit, while the 1 kW design (H/w_c = 15–30) is outside LG's fitted range 1–10.
 
 What the matrix shows:
 1. **The fully developed assumption fails** (49 %): the thermal entry region covers much of the channel and the inlet h is several times the fully developed value. This is the proposal's stated fallback, now confirmed.
@@ -149,4 +149,4 @@ What the matrix shows:
 
 ## Status
 
-Digitized and compared (above). Pending: a person's hard check of the digitized points against the overlays; `verified_against_pdf` for the geometry and conditions CSVs.
+Digitized, compared and rechecked (above; `data/raw/recheck_log.md`). Geometry, conditions and sensors verified against the PDF (outlet pressure not reported). Pending: a person's hand check of a sample of digitized points.

@@ -198,7 +198,7 @@ Fig. 6(b),200,TC3,512.4,83.532,K_above_inlet,digitized,"square at px (2932.5, 10
 Fig. 6(b),200,TC3,580.9,79.405,K_above_inlet,digitized,"square at px (2987.5, 1092.5) on 600-dpi page 9; reading uncertainty about +/-0.125 (y), +/-1.2 (Re)"
 Fig. 6(b),200,TC3,645.6,75.154,K_above_inlet,digitized,"square at px (3039.5, 1126.5) on 600-dpi page 9; reading uncertainty about +/-0.125 (y), +/-1.2 (Re)"
 Fig. 6(b),200,TC3,711.6,72.650,K_above_inlet,digitized,"square at px (3092.5, 1146.5) on 600-dpi page 9; reading uncertainty about +/-0.125 (y), +/-1.2 (Re)"
-Fig. 6(b),200,TC3,787.6,70.021,K_above_inlet,digitized,"square at px (3153.5, 1167.5) on 600-dpi page 9; reading uncertainty about +/-0.125 (y), +/-1.2 (Re)"
+Fig. 6(b),200,TC3,787.6,70.021,K_above_inlet,digitized_partly_hidden,"square at px (3153.5, 1167.5) on 600-dpi page 9; reading uncertainty about +/-0.125 (y), +/-1.2 (Re); status changed 2026-11-13 recheck: lower of two stacked squares, partly behind the upper one (white halo line), same as other repeat-run markers"
 Fig. 6(b),200,TC3,787.6,71.769,K_above_inlet,digitized,"square at px (3153.5, 1153.5) on 600-dpi page 9; reading uncertainty about +/-0.125 (y), +/-1.2 (Re)"
 Fig. 6(b),200,TC3,863.5,67.017,K_above_inlet,digitized_partly_hidden,"square at px (3214.5, 1191.5) on 600-dpi page 9; reading uncertainty about +/-0.125 (y), +/-1.2 (Re); partly hidden behind another marker"
 Fig. 6(b),200,TC3,863.6,67.891,K_above_inlet,digitized,"square at px (3214.5, 1184.5) on 600-dpi page 9; reading uncertainty about +/-0.125 (y), +/-1.2 (Re)"

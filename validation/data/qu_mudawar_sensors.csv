@@ -1,9 +1,9 @@
 sensor,quantity,x_from_inlet_m,location,status,paper_location,verified_against_pdf,notes
-TC1,copper temperature,0.005,"heat sink center plane, thermocouple plane z = Hth",derived,"Sec. 2.2; Table 1 (L1)",no,"x = L1; assumes L1 is measured from the channel inlet end, confirm on Fig. 2(b) or Fig. 3"
-TC2,copper temperature,0.016588,"same plane",derived,"Table 1 (L1 + L2)",no,"L2 = L3 = L4 = 11.588 mm"
-TC3,copper temperature,0.028176,"same plane",derived,"Table 1 (L1 + L2 + L3)",no,
-TC4,copper temperature,0.039764,"same plane",derived,"Table 1 (L1 + L2 + L3 + L4)",no,"5 mm from the outlet end, symmetric with TC1"
-T_in,water inlet temperature,,inlet plenum,measured,"Sec. 2.2",no,"Type-K in the inlet plenum"
-T_out,water outlet temperature,,outlet plenum,measured,"Sec. 2.2",no,"Type-K in the outlet plenum"
-P_in,absolute pressure,,deep portion of inlet plenum,measured,"Sec. 2.2",no,"reported dP therefore includes plenum contraction and expansion losses, not channel friction alone"
-P_out,absolute pressure,,deep portion of outlet plenum,measured,"Sec. 2.2",no,"paper's own prediction adds contraction and expansion losses, Eq. (18)-(22)"
+TC1,copper temperature,0.005,"heat sink center plane, thermocouple plane z = Hth",derived,Sec. 2.2; Table 1 (L1),yes,"x = L1; positions are symmetric (5 mm from either end, L - 39.764 mm = 5.000 mm), and TC1 reads coolest in Fig. 6, so TC1 is the inlet-side thermocouple"
+TC2,copper temperature,0.016588,same plane,derived,Table 1 (L1 + L2),yes,L2 = L3 = L4 = 11.588 mm
+TC3,copper temperature,0.028176,same plane,derived,Table 1 (L1 + L2 + L3),yes,
+TC4,copper temperature,0.039764,same plane,derived,Table 1 (L1 + L2 + L3 + L4),yes,"5 mm from the outlet end, symmetric with TC1"
+T_in,water inlet temperature,,inlet plenum,measured,Sec. 2.2,yes,Type-K in the inlet plenum
+T_out,water outlet temperature,,outlet plenum,measured,Sec. 2.2,yes,Type-K in the outlet plenum
+P_in,absolute pressure,,deep portion of inlet plenum,measured,Sec. 2.2,yes,"reported dP therefore includes plenum contraction and expansion losses, not channel friction alone"
+P_out,absolute pressure,,deep portion of outlet plenum,measured,Sec. 2.2,yes,"paper's own prediction adds contraction and expansion losses, Eq. (18)-(22)"
