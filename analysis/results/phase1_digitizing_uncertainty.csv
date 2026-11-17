@@ -1,0 +1,7 @@
+case,points,MAPE_TC_pct,bias_pct,reading_uncertainty_K,MAPE_change_points
+as digitized,156,4.6094797902465565,0.6357529807195479,0.125-0.5,0.0
+all readings + reading uncertainty,156,4.654076498686161,-0.23166720745589967,0.125-0.5,0.04459670843960417
+all readings - reading uncertainty,156,4.663166550703535,1.5293815294996493,0.125-0.5,0.05368676045697818
+"independent uniform +/- shifts, 2000 draws (seed 0): mean",156,4.626181443256879,,0.125-0.5,0.01670165301032256
+independent uniform +/- shifts: 2.5th percentile,156,4.524861972791302,,0.125-0.5,-0.08461781745525432
+independent uniform +/- shifts: 97.5th percentile,156,4.724330329294866,,0.125-0.5,0.11485053904830966

@@ -27,7 +27,7 @@ import numpy as np  # noqa: E402
 from coldplate.config import Case, lpm  # noqa: E402
 from coldplate.model import evaluate  # noqa: E402
 from coldplate.optimize import (  # noqa: E402
-    _polish_flow, compare_designs, flow_sweep, optimum_flow, with_design,
+    _polish_flow, compare_designs, flow_sweep, optimize_design, optimum_flow, with_design,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -171,18 +171,70 @@ def study4_sensitivity(case: Case) -> None:
               f"X_lost {r['X_lost_W']:.2f} W  T_dev {r['T_dev_C']:.1f} C")
 
 
+def study5_below_limit(case: Case) -> None:
+    """D8: trend below the 0.1 mm manufacturing bound, w_c = w_f.
+
+    Each width is run at its own lost-work optimum flow under the same T_dev, dP and
+    Re limits. The manufacturing bound is lowered to 0.05 mm for this study only, so
+    `feasible` here refers to the other limits. H/w_c reaches 60 at 0.05 mm, far
+    outside the benchmark's aspect ratio (3.1): model trend, not a validated result.
+    """
+    c0 = replace(case, limits=replace(case.limits, w_c_min=0.05e-3, w_f_min=0.05e-3))
+    rows = []
+    V = 3.0
+    for w_mm in (0.05, 0.075, 0.1, 0.15, 0.2):
+        w = w_mm * 1e-3
+        c = with_design(c0, w_c=w, w_f=w)
+        V_free = float("nan")                               # optimum with no constraints
+        for hi in (20.0, 10.0, 5.0, 2.5):                   # narrow channels: the model cannot
+            try:                                            # be evaluated once dP nears P_in
+                V_free = optimum_flow(c, V_lpm_bounds=(0.3, hi), n_x=21).V_dot * 6e4
+                break
+            except ValueError:
+                continue
+        V = _polish_flow(c, "lost_work", w, w, V, (0.3, 20.0))
+        r = evaluate(with_design(c, V_dot=lpm(V)))
+        active = [k for k in ("T_dev", "dP", "Re")
+                  if abs(r.margins[k]) < {"T_dev": 0.05, "dP": 250.0, "Re": 5.0}[k]]
+        rows.append({"case": "w_c = w_f, own optimum flow", "w_c_mm": w_mm, "w_f_mm": w_mm,
+                     "V_unconstrained_lpm": V_free,
+                     "active_constraint": ", ".join(active) if active else "none",
+                     **r.summary()})
+    # Free geometry with the bounds lowered to 0.05 mm (start from the best row above).
+    b = min(rows, key=lambda q: q["X_lost_W"])
+    d = optimize_design(c0, "lost_work", (b["w_c_mm"] * 1e-3, b["w_f_mm"] * 1e-3, lpm(b["V_lpm"])),
+                        bounds=[(0.05, 1.0), (0.05, 0.5), (0.3, 20.0)])
+    r = d.result
+    active = [k for k in ("T_dev", "dP", "Re")
+              if abs(r.margins[k]) < {"T_dev": 0.05, "dP": 250.0, "Re": 5.0}[k]]
+    rows.append({"case": "free w_c, w_f, V with 0.05 mm bounds (SLSQP)", "w_c_mm": d.w_c * 1e3,
+                 "w_f_mm": d.w_f * 1e3, "V_unconstrained_lpm": float("nan"),
+                 "active_constraint": ", ".join(active) if active else "none", **r.summary()})
+    write_csv(RES / "study5_below_limit.csv", rows)
+    print("Study 5 (below the 0.1 mm bound):")
+    for q in rows:
+        print(f"  w_c {q['w_c_mm']:.3f} w_f {q['w_f_mm']:.3f} mm  V {q['V_lpm']:.2f} "
+              f"(free {q['V_unconstrained_lpm']:.2f}) L/min  dP {q['dP_kPa']:.1f} kPa  "
+              f"T_dev {q['T_dev_C']:.1f} C  X_lost {q['X_lost_W']:.2f} W  W_hyd {q['W_hyd_W']:.2f} W  "
+              f"Re {q['Re']:.0f}  active: {q['active_constraint']}")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--quick", action="store_true")
+    ap.add_argument("--only", type=int, choices=range(1, 6), default=None,
+                    help="run one study only (1-5)")
     args = ap.parse_args()
     case = Case()
     r = evaluate(case)
     print("Reference design:", {k: (round(v, 4) if isinstance(v, float) else v)
                                 for k, v in r.summary().items()})
-    study1_flow_sweep(case)
-    study2_designs(case, args.quick)
-    study3_inlet(case)
-    study4_sensitivity(case)
+    studies = {1: lambda: study1_flow_sweep(case), 2: lambda: study2_designs(case, args.quick),
+               3: lambda: study3_inlet(case), 4: lambda: study4_sensitivity(case),
+               5: lambda: study5_below_limit(case)}
+    for k, fn in studies.items():
+        if args.only in (None, k):
+            fn()
 
 
 if __name__ == "__main__":
