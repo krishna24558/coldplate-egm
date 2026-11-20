@@ -1,5 +1,7 @@
 # Project status
 
+**Update 2026-11-20: `docs/final_report.md` sections 9 (second law, Eqs. 23–28), 10 (Studies 1–4 + Phase 1, Tables 17–22, Figs. 13–17 = fig_J1–J5, not made yet), 12 (conclusions) and 13 (limitations, future work) written from the CSVs; no code/data changed, tests not run. Next: section 11 (code structure), abstract, appendices A–C, then Phase 2 figures. Two small inconsistencies to fix: section 6.6 says the CV-C minimum is "near 1–2 L/min" (the CSV is flat within 0.5 % from 0.5 to 4.5 L/min, lowest at 0.75); Table 2 says Study 3 covers 20–55 °C (it runs 20–60 °C).**
+
 **Update 2026-11-16: Phase 1 technical work finished (D8 trend, D7, D5, fully developed comparison, numerical checks, digitizing uncertainty, headline results). See "Phase 1 results" below; tests 50 passed, 1 skipped on Windows (digitizer test needs Node.js).**
 
 Last updated: 2026-11-08, second session (developing-flow and three-sided correlations coded and checked against tabulated data; local-h thermal solver with optional axial conduction; headless WebPlotDigitizer pipeline; validation matrix script). **Qu & Mudawar Figs. 4(a), 5, 6 digitized and compared; developing-flow models selected and made the defaults (D4 closed). Awaiting a person's hard check of the digitized points.**
