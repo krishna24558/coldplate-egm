@@ -1,7 +1,7 @@
 """Phase 1 closing checks on the 1 kW case (no physics changed).
 
     python analysis/run_phase1_checks.py            # everything
-    python analysis/run_phase1_checks.py d7 d5 fd num digit   # pick parts
+    python analysis/run_phase1_checks.py d7 d5 fd num digit cap   # pick parts
 
 Writes to analysis/results/:
     phase1_pump_cv.csv              D7: pump inside / outside the CV-L control volume
@@ -10,6 +10,9 @@ Writes to analysis/results/:
     phase1_numerical_checks.csv     grid independence, energy balance, property iteration
     phase1_digitizing_uncertainty.csv   thermocouple MAPE with the data shifted by its
                                         reading uncertainty
+    phase1_flow_cap.csv             Study 2 lost-work optimum with the extra limit
+                                    V <= 2 L/min (unconstrained row copied from
+                                    phase1_pump_cv.csv)
 
 Design optima use the same grid + SLSQP procedure as Study 2 (run_studies.py).
 The digitized data and the validation matrix are not modified or rerun; the
@@ -29,7 +32,8 @@ import numpy as np  # noqa: E402
 from coldplate.benchmark import DATA_DIR, _rows, compare, load_benchmark, predict  # noqa: E402
 from coldplate.config import Case, Models, lpm  # noqa: E402
 from coldplate.model import evaluate  # noqa: E402
-from coldplate.optimize import _polish_flow, compare_designs, optimum_flow, with_design  # noqa: E402
+from coldplate.optimize import (_polish_flow, best_feasible, compare_designs,  # noqa: E402
+                                grid_sweep, optimize_design, optimum_flow, with_design)
 from coldplate.properties import enthalpy  # noqa: E402
 
 RES = Path(__file__).resolve().parents[1] / "analysis" / "results"
@@ -206,8 +210,65 @@ def digitizing_uncertainty() -> None:
     write_csv(RES / "phase1_digitizing_uncertainty.csv", rows)
 
 
+def flow_cap(V_cap: float = 2.0) -> None:
+    """Study 2 lost-work optimum with the extra limit V <= V_cap (L/min).
+
+    Same procedure as design_set(): grid sweep (flows above the cap left out), SLSQP
+    from the best feasible grid point, widths snapped to 1 nm, flow re-tuned with whole
+    channels. The cap is applied as the upper flow bound in all three steps. Default
+    case otherwise (pump inside CV-L, eta_pump 0.5, K_c + K_e = 1.5).
+    """
+    case = Case()
+    lim = case.limits
+    pts = grid_sweep(case, WC, WF, [v for v in VG if v <= V_cap])
+    p = best_feasible(pts, "lost_work")
+    print(f"  best grid point: w_c {p.w_c * 1e3:.3f} w_f {p.w_f * 1e3:.3f} mm, "
+          f"V {p.V_dot * 6e4:.2f} L/min, X_lost {p.result.sl.X_lost:.2f} W")
+    bounds = [(max(0.1, lim.w_c_min * 1e3), 1.0), (max(0.1, lim.w_f_min * 1e3), 0.5),
+              (0.3, V_cap)]
+    o = optimize_design(case, "lost_work", (p.w_c, p.w_f, p.V_dot), bounds=bounds)
+    print(f"  SLSQP: {o.message} (success {o.success}); w_c {o.w_c * 1e3:.10f} "
+          f"w_f {o.w_f * 1e3:.10f} mm, V {o.V_dot * 6e4:.4f} L/min")
+    w_c, w_f = round(o.w_c, 9), round(o.w_f, 9)
+    V = _polish_flow(case, "lost_work", w_c, w_f, o.V_dot * 6e4, (0.3, V_cap))
+    r = evaluate(with_design(case, w_c=w_c, w_f=w_f, V_dot=lpm(V)))
+    capped = {"design": f"min lost work, V <= {V_cap:g} L/min", "source": "this run",
+              **_row(r, w_c, w_f)}
+
+    ref = next(q for q in _read_csv(RES / "phase1_pump_cv.csv")
+               if q["pump_cv"].startswith("inside") and q["design"] == "min lost work")
+    keys = [k for k in capped if k not in ("design", "source")]
+    free = {"design": "min lost work, no flow cap",
+            "source": "copied from phase1_pump_cv.csv (pump inside)",
+            **{k: ref[k] for k in keys}}
+    X0 = float(ref["X_lost_W"])
+    for row in (free, capped):
+        # _row() flags only T_dev, dP and Re; add the width bounds and the flow cap
+        wc, wf = float(row["w_c_mm"]) * 1e-3, float(row["w_f_mm"]) * 1e-3
+        v = float(row["V_lpm"])
+        extra = [k for k, on in (("flow cap", abs(v - V_cap) < 1e-3),
+                                 ("w_c bound", abs(wc - lim.w_c_min) < 1e-12),
+                                 ("w_f bound", abs(wf - lim.w_f_min) < 1e-12)) if on]
+        act = [] if row["active_constraint"] == "none" else [row["active_constraint"]]
+        row["active_constraint"] = ", ".join(act + extra) if act + extra else "none"
+        row["X_lost_increase_vs_unconstrained_W"] = float(row["X_lost_W"]) - X0
+        row["X_lost_increase_vs_unconstrained_pct"] = 100 * (float(row["X_lost_W"]) / X0 - 1)
+    rows = [free, capped]
+    for q in rows:
+        print(f"  {q['design']:36s} w_c {float(q['w_c_mm']):.3f} w_f {float(q['w_f_mm']):.3f} "
+              f"N {q['N']} V {float(q['V_lpm']):.3f} dP {float(q['dP_kPa']):.2f} "
+              f"T_dev {float(q['T_dev_C']):.2f} X_lost {float(q['X_lost_W']):.3f} "
+              f"(+{q['X_lost_increase_vs_unconstrained_pct']:.2f} %) {q['active_constraint']}")
+    write_csv(RES / "phase1_flow_cap.csv", rows)
+
+
+def _read_csv(path: Path) -> list:
+    with open(path, newline="") as fh:
+        return list(csv.DictReader(fh))
+
+
 PARTS = {"d7": d7_pump_cv, "d5": d5_plenum_K, "fd": fd_vs_validated,
-         "num": numerical_checks, "digit": digitizing_uncertainty}
+         "num": numerical_checks, "digit": digitizing_uncertainty, "cap": flow_cap}
 
 if __name__ == "__main__":
     for name in (sys.argv[1:] or list(PARTS)):
