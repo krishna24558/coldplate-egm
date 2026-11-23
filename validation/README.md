@@ -117,7 +117,7 @@ Sec. 3.2 states a measured ΔP of 0.86 bar at 100 W/cm², Re = 1672. The model g
 
 ## Results (2026-11-08)
 
-Data: 43 ΔP points (Fig. 4a), 43 water-ΔT points (Fig. 5), 187 thermocouple rises (Fig. 6a/b), digitized as described above. Points partly hidden behind another marker (repeat runs) and one rejected point are kept in the CSVs with their own status and left out of the MAPE. Calibration checks: the last ΔP point reads 0.858 bar at Re 1670 (text: 0.86 bar at Re 1672); the Re ranges read 139–1670 and 386–1288 (text: 139–1672, 385–1289); major-tick spacing is linear to within 1.4 px; isolated markers agree with WebPlotDigitizer's own blob centroids to ≤ 1.5 px. Independent recheck done 2026-11-13 (`data/raw/recheck_log.md`): no values changed, one status corrected, geometry/conditions/sensors verified against the PDF. **Still to do: a person's hand check** (Suneel, `docs/team_tasks.md`; overlays `data/raw/fig*_overlay.png`).
+Data: 43 ΔP points (Fig. 4a), 43 water-ΔT points (Fig. 5), 187 thermocouple rises (Fig. 6a/b), digitized as described above. Points partly hidden behind another marker (repeat runs) and one rejected point are kept in the CSVs with their own status and left out of the MAPE. Calibration checks: the last ΔP point reads 0.858 bar at Re 1670 (text: 0.86 bar at Re 1672); the Re ranges read 139–1670 and 386–1288 (text: 139–1672, 385–1289); major-tick spacing is linear to within 1.4 px; isolated markers agree with WebPlotDigitizer's own blob centroids to ≤ 1.5 px. Independent recheck done 2026-11-13 (`data/raw/recheck_log.md`): no values changed, one status corrected, geometry/conditions/sensors verified against the PDF. Independent hand check done afterwards: 24 points read by hand in the WebPlotDigitizer browser app (8 from Fig. 4(a), 8 from Fig. 5, 8 from Figs. 6(a)+(b); `data/raw/hand_check_points.csv`). Against the CSV values: Re within 1.39 %; ΔP mean 1.2 %, largest 2.7 % (0.0063 bar); water rise mean 1.0 %, largest 1.8 % (0.76 K); thermocouple rise mean 0.5 %, largest 1.5 % (0.49 K); all under 1 % of the axis span (`data/raw/recheck_log.md`, "Hand check"). No value changed.
 
 Full matrix: `results/thermal_model_matrix.csv`, `results/dP_model_matrix.csv`. MAPE of thermocouple rise above inlet (157 points) and of ΔP (39 points); no coefficient tuned:
 
@@ -149,4 +149,4 @@ What the matrix shows:
 
 ## Status
 
-Digitized, compared and rechecked (above; `data/raw/recheck_log.md`). Geometry, conditions and sensors verified against the PDF (outlet pressure not reported). Pending: a person's hand check of a sample of digitized points.
+Digitized, compared and rechecked (above; `data/raw/recheck_log.md`). Geometry, conditions and sensors verified against the PDF (outlet pressure not reported). Independent hand check of 24 points done (all within 1 % of the axis span; `data/raw/recheck_log.md`).

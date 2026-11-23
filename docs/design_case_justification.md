@@ -14,7 +14,7 @@ Figures: `figures/geometry_3d_design.png` (3D view and cross-section), `figures/
 | Base thickness t_b = 1 mm | 1–3 mm for GPU/CPU cold plates | Shedd (above) |
 | Channel length L = 30 mm, footprint 30 × 30 mm | L_ch = 30 mm in the Accelsius model | Wang et al. (above) |
 | Heat load 1 kW on 9 cm² = 111 W/cm² | 100 W/cm² footprint flux in the Accelsius model; packages "climbing past 1500 W" | Wang et al.; Shedd |
-| Inlet water 30 °C (sweep 20–55 °C) | 45 °C inlet with PG25 coolant reported for GB200 (blog claim); ASHRAE liquid-cooling classes W17–W45 (cited in the proposal) | FiberMall; proposal |
+| Inlet water 30 °C (Study 3 sweep 20–60 °C) | 45 °C inlet with PG25 coolant reported for GB200 (blog claim); ASHRAE liquid-cooling classes W17–W45 (cited in the proposal) | FiberMall; proposal |
 | ΔP limit 50 kPa | < 20 kPa cold plate pressure drop reported for GB200 (blog claim) | FiberMall |
 | 2 L/min reference flow | 1.8 L/min per GB200 cold plate (blog claim) | FiberMall |
 

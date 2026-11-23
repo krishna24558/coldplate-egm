@@ -71,7 +71,7 @@ Keep these separate. Report each term against the control volume it belongs to.
 
 It is **not** a full loop model: it idealizes the CDU as a reservoir at T_in. CV-C is still computed, as a diagnostic and for the decomposition.
 
-Why it matters: in fully developed laminar flow h does not depend on velocity, so under CV-C more flow only makes the water colder and Ṡ_gen,C slightly rises. **CV-C alone has no interior optimum flow.** With the validated developing-flow model h rises with velocity and Ṡ_gen,C becomes almost flat (shallow minimum near 1–2 L/min for the reference design), still too weak to set the design. CV-L adds a coolant-warming term that falls roughly as 1/V̇, which creates one.
+Why it matters: in fully developed laminar flow h does not depend on velocity, so under CV-C more flow only makes the water colder and Ṡ_gen,C slightly rises. **CV-C alone has no interior optimum flow.** With the validated developing-flow model h rises with velocity and Ṡ_gen,C becomes almost flat (flat within 0.5 % from 0.5 to 4.5 L/min (lowest at 0.75 L/min) for the reference design; report section 6.6), still too weak to set the design. CV-L adds a coolant-warming term that falls roughly as 1/V̇, which creates one.
 
 Split at the mean water temperature T̄_f (proposal): coolant warming Q(1/T_in − 1/T̄_f) ∝ ~1/V̇; base-to-coolant Q(1/T̄_f − 1/T̄_s) ≈ constant; pumping Ẇ_pump/T_in ∝ V̇². Approximate optimum V̇* = (B/2C)^(1/3), B = T0 Q²/(2 ρ c_p T_in²). Check at the optimum: T0 × coolant-warming term ≈ 2 × T0 × pumping term.
 
@@ -104,7 +104,7 @@ Split at the mean water temperature T̄_f (proposal): coolant warming Q(1/T_in �
 
 | ID | Assumption | Effect | Status |
 |---|---|---|---|
-| A1 | Heat enters CV-C at a single mean temperature T̄_s | small bias in the boundary entropy-transfer term | checked: the code uses the exact ∫q/T_b; the mean-T value differs by < 0.1 % for the reference design (test) |
+| A1 | Heat enters CV-C at a single mean temperature T̄_s | small bias in the boundary entropy-transfer term | checked: the code uses the exact ∫q″/T_b dA. Reference design (one `evaluate(Case())` run, 2026-11-22): the boundary term Q/T̄_s differs from ∫q″/T_b dA by 0.006 %; Ṡ_gen,C computed with the mean form differs by 0.15 % (a small difference of two large terms); the two-term split of Section 2 (heat transfer + friction, report Eq. 24) by 0.48 %. The test allows 1 % |
 | A2 | Uniform heat flux over the footprint | no hotspots; T_dev under-predicted for real chips | accepted for this course |
 | A3 | 1D base conduction, no spreading | footprint = heated area, so spreading is small | accepted for 1 kW case; check for the experiment, whose heated area may differ from the channel area |
 | A4 | Hottest device point above the outlet, with local h = mean h | ignores entrance-region enhancement | open |

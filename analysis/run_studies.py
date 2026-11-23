@@ -1,12 +1,11 @@
-"""Run the proposal studies on the 1 kW application case.
+"""Run the design studies on the 1 kW application case (report section 10).
 
-    python analysis/run_studies.py            # all studies
-    python analysis/run_studies.py --quick    # coarser grids
+    python analysis/run_studies.py             # Studies 1-5
+    python analysis/run_studies.py --only 2    # one study
+    python analysis/run_studies.py --quick     # coarser Study 2 grid
 
-Writes CSVs to analysis/results/ and PNG figures to figures/.
-Numbers depend on the open assumptions in docs/equation_sheet.md (A6-A9, D7)
-and on fully developed correlations; treat them as model output, not validated
-results, until the Qu & Mudawar comparison is done.
+Writes CSVs to analysis/results/. The report figures are made from these CSVs by
+analysis/make_report_figures.py. Uses the validated default models (coldplate/config.py).
 """
 
 import argparse
@@ -18,10 +17,6 @@ from pathlib import Path
 # Works without `pip install -e .`
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-import matplotlib
-
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
 from coldplate.config import Case, lpm  # noqa: E402
@@ -32,7 +27,6 @@ from coldplate.optimize import (  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 RES = ROOT / "analysis" / "results"
-FIG = ROOT / "figures"
 
 
 def write_csv(path: Path, rows: list) -> None:
@@ -51,24 +45,6 @@ def study1_flow_sweep(case: Case) -> None:
     print(f"Study 1: lost-work optimum {o.V_dot*6e4:.2f} L/min (analytical "
           f"{o.V_dot_analytical*6e4:.2f}), X_lost {o.result.sl.X_lost:.2f} W, "
           f"X_warm/X_pump {o.warm_to_pump_ratio:.2f}, T_dev {o.result.th.T_dev-273.15:.1f} C")
-
-    v = [r["V_lpm"] for r in rows]
-    fig, ax = plt.subplots(figsize=(7, 4.2))
-    ax.plot(v, [r["X_lost_W"] for r in rows], lw=2.2, label="Total lost work")
-    ax.plot(v, [r["X_gap_W"] for r in rows], ls=":", label="Base-to-coolant")
-    ax.plot(v, [r["X_warm_W"] for r in rows], label="Coolant warming")
-    ax.plot(v, [r["X_pump_W"] for r in rows], ls="--", label="Pumping")
-    ax.axvline(o.V_dot * 6e4, color="0.5", lw=0.8)
-    ax.set_xlabel("Coolant flow (L/min)")
-    ax.set_ylabel("Lost work, T0·S_gen (W)")
-    ax.set_title(f"Lost work minimum at {o.V_dot*6e4:.1f} L/min "
-                 f"(0.2 mm channels and fins, 1 kW)", fontsize=10)
-    ax.legend(frameon=False)
-    ax.grid(alpha=0.3)
-    fig.tight_layout()
-    FIG.mkdir(exist_ok=True)
-    fig.savefig(FIG / "study1_flow_sweep.png", dpi=150)
-    plt.close(fig)
 
 
 def study2_designs(case: Case, quick: bool) -> None:
@@ -117,32 +93,6 @@ def study3_inlet(case: Case) -> None:
           f"{max(r['T_in_C'] for r in rows if r['status'] == 'entropy optimum'):.1f} C; "
           f"device limit governs from {min(bind):.1f} C" if bind else
           "Study 3: device limit never binds at the reference geometry")
-
-    t = np.array([r["T_in_C"] for r in rows])
-    ok = np.array([not r["status"].startswith("infeasible") for r in rows])
-    fig, ax = plt.subplots(1, 2, figsize=(10, 3.8))
-    ax[0].plot(t[ok], [r["V_lpm"] for r, k in zip(rows, ok) if k], marker="o")
-    if (~ok).any():
-        ax[0].axvspan(t[~ok].min() - 1.25, t.max() + 1.25, color="0.85")
-        ax[0].text(t[~ok].min(), ax[0].get_ylim()[1] * 0.97, " no feasible flow", va="top",
-                   fontsize=8, color="0.3")
-    ax[0].set_xlabel("Inlet temperature (°C)")
-    ax[0].set_ylabel("Constrained optimum flow (L/min)")
-    ax[0].grid(alpha=0.3)
-    ax[1].plot(t[ok], [r["X_out_W"] for r, k in zip(rows, ok) if k], marker="o",
-               label="Exergy carried by outlet water")
-    ax[1].plot(t[ok], [r["X_lost_W"] for r, k in zip(rows, ok) if k], marker="s",
-               label="Lost work")
-    ax[1].axhline(0, color="0.5", lw=0.6)
-    ax[1].set_xlabel("Inlet temperature (°C)  [dead state 25 °C]")
-    ax[1].set_ylabel("W")
-    ax[1].legend(frameon=False)
-    ax[1].grid(alpha=0.3)
-    fig.suptitle("Reference geometry (0.2 mm), lost-work optimum flow with T_dev ≤ 90 °C; "
-                 "proposal range 20-50 °C, extended to 60 °C", fontsize=10)
-    fig.tight_layout()
-    fig.savefig(FIG / "study3_inlet_temperature.png", dpi=150)
-    plt.close(fig)
 
 
 def study4_sensitivity(case: Case) -> None:

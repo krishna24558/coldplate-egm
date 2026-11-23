@@ -49,7 +49,7 @@ Sections 4 to 8 cover objectives 1 and 2 and the modelling choices behind object
 
 **Step 4: model changes.** We coded the developing-flow correlations of Lee and Garimella [9] and Muzychka and Yovanovich [10], three-sided heating, axial conduction in the copper base, a wall-viscosity correction and apparent (developing) friction. We compared 24 thermal and 12 friction combinations against the data without tuning any coefficient (section 6). The selected model has a thermocouple MAPE of 4.6 % and a pressure-drop MAPE of 9.7 %, both inside the proposal's target.
 
-**Step 5: recheck of the data.** The digitized points and the values taken from the paper's text were rechecked independently (section 7.6). No data value changed.
+**Step 5: recheck of the data.** The digitized points and the values taken from the paper's text were rechecked independently, and 24 of the points were then read again by hand in an independent hand check (section 7.6). No data value changed.
 
 **Step 6: design studies.** With the validated model as the default we ran the studies of the proposal on the 1 kW case (flow sweep, constrained optimization against the minimum thermal resistance design, inlet temperature sweep, sensitivities) and some extra checks (pump inside or outside the control volume, plenum loss coefficient, channels below the 0.1 mm bound, numerical convergence, digitizing uncertainty, a flow cap of 2 L/min). The results are in sections 9 and 10; sections 4 to 8 use them only where they justify a modelling choice.
 
@@ -421,7 +421,7 @@ The proposal's method is a coarse grid sweep followed by SciPy SLSQP. We kept it
 2. SLSQP over the three variables with the constraints T_dev ≤ 90 °C, ΔP ≤ 50 kPa, Re ≤ 2000 and the bounds on the widths. In this step the channel count N of Eq. (1) is allowed to be fractional. With a whole number of channels the objective jumps each time N changes by one, and a gradient method like SLSQP stalls on the jumps.
 3. Polish: the result is re-evaluated with a whole number of channels and the flow is re-optimized (SLSQP on flow only) for that geometry. The reported designs always have whole channels.
 
-A numerical detail we found: SLSQP can return a width at its bound as 0.1000000000028 mm, which drops the whole-channel count from 150 to 149 and changes X_lost by 0.3 % (33.45 instead of 33.34 W). In the Phase 1 checks the widths are therefore snapped to 1 nm before the polish. The optimizer function itself was not changed; the main design study has N = 150.
+A numerical detail we found: SLSQP can return a width at its bound as 0.1000000000028 mm, which drops the whole-channel count from 150 to 149 and changes X_lost by 0.3 % (33.45 instead of 33.34 W). In the Phase 1 checks the widths are therefore snapped to 1 nm before the polish, and the optimizer itself now snaps any width that SLSQP returns within 10⁻⁹ m of a bound onto that bound, so the minimum lost-work design reproduces exactly on a rerun (N = 150, 33.34 W). The minimum R_th design lies on the 50 kPa limit with an interior width, so reruns on other machines can give 37.38–37.39 W (about 0.01 %); the savings stay at 63.2 % pumping power and 10.8 % lost work.
 
 For the single-variable flow optimum at a fixed geometry we use a bounded scalar minimization and compare the result with Eq. (21): 5.13 L/min numerically against 4.77 L/min from the formula for the reference geometry. The numerical optimum is higher because with developing flow the gap term also falls with flow, which Eq. (21) does not include.
 
@@ -525,7 +525,7 @@ We compare like with like:
 
 ### 7.4 How a student would extract the data by hand
 
-This is the manual route with the free WebPlotDigitizer browser app [14]. It is the method we would recommend to someone repeating the work, and it is the method for the pending hand check (section 7.6).
+This is the manual route with the free WebPlotDigitizer browser app [14]. It is the method we would recommend to someone repeating the work, and it is the method of the independent hand check (section 7.6).
 
 1. **Get a clean image.** Open the PDF, zoom to 200–400 % on the figure and take a screenshot of just that plot (PNG). Higher resolution means a smaller reading error.
 2. **Load and calibrate.** *File → Load image*, choose *2D (X-Y) Plot*, then click four reference points: two on the x axis and two on the y axis, and type their values. Use tick marks far apart to reduce the error.
@@ -567,9 +567,9 @@ The reading uncertainty is 1 px for the centroid, plus one sixth of the marker h
 
 ### 7.6 The recheck
 
-On 2026-11-13 the data were rechecked, as far as possible independently of the digitizing script (`validation/data/raw/recheck_log.md`). The recheck was done with an AI assistant (Claude) and separate code; it is not the hand check by a person, which is still pending. Table 12 gives the six checks.
+On 2026-11-13 the data were rechecked, as far as possible independently of the digitizing script (`validation/data/raw/recheck_log.md`). The recheck was done with an AI assistant (Claude) and separate code; it is not a hand check by a person. An independent hand check followed and is described at the end of this section. Table 12 gives the six checks of the recheck and, as check 7, the hand check.
 
-**Table 12.** Recheck of the benchmark data.
+**Table 12.** Recheck (checks 1–6, 2026-11-13) and independent hand check (check 7) of the benchmark data.
 
 | # | Check | Result |
 |---|---|---|
@@ -579,6 +579,7 @@ On 2026-11-13 the data were rechecked, as far as possible independently of the d
 | 4 | Thermocouple order and smoothness | Pass. TC1 < TC2 < TC3 < TC4 at every run; rms scatter about a smooth fit 1.8–2.3 % (100 W/cm²) and 0.6–1.0 % (200 W/cm²) |
 | 5 | Geometry, conditions and sensor values against the PDF text and Table 1 | Pass. Table 1 column alignment and the 2.462 mm thermocouple depth confirmed; TC1 is the inlet-side sensor; system pressure not reported |
 | 6 | Independent re-reading: different renderer, calibration fitted through all major ticks, 12 random points per figure | Pass. Agreement within ≤ 0.003 bar for ΔP and ≤ 0.4 K for the thermocouple rises; one status corrected |
+| 7 | Independent hand check: 24 points read by hand in the WebPlotDigitizer browser app (8 from Fig. 4(a), 8 from Fig. 5, 8 from Figs. 6(a) and 6(b)) | Pass. Re within 1.39 %; ΔP mean 1.2 %, largest 2.7 % (0.0063 bar); water rise mean 1.0 %, largest 1.8 % (0.76 K); thermocouple rise mean 0.5 %, largest 1.5 % (0.49 K); all under 1 % of the axis span |
 
 Results of the recheck:
 
@@ -587,7 +588,15 @@ Results of the recheck:
 - Two physical observations were left in the data. At 200 W/cm² the measured water temperature rise is 2.5–5.7 % below the energy balance at every point, which is within the 4 % flow-rate uncertainty plus heat loss; it means the model, which uses the full Q, slightly over-predicts the water rise at 200 W/cm². And the run at Re ≈ 442, 100 W/cm², reads about 5 % low on all four thermocouples and on the water rise, which points to the real conditions of that run and not to a misread marker.
 - The recheck shares one assumption with the script: that a marker's value is its area centroid. For triangles the plotting anchor could be the bounding-box centre, about 3 px (0.4 K) higher in Fig. 6.
 
-**Still to do:** a hand check by a person (Suneel): look through the four overlay images and spot-check 5–10 points per figure in the WebPlotDigitizer browser app, following section 7.4. Until that is done we call the data "digitized and rechecked", not "hand-verified".
+**Independent hand check (check 7).** After the recheck, an independent hand check of the digitized data was made by the manual route of section 7.4: 24 points were read by hand in the WebPlotDigitizer browser app, 8 from Fig. 4(a), 8 from Fig. 5 and 8 from Figs. 6(a) and 6(b) (TC1–TC4 at each heat flux), spread over the Re range and both heat fluxes (`validation/data/raw/hand_check_points.csv`). Each hand reading was compared with the matching point of the benchmark CSVs, with the CSV value as the reference:
+
+- Re: within 1.39 % at every point.
+- Fig. 4(a), pressure drop: mean difference 1.2 %, largest 2.7 % (0.0063 bar).
+- Fig. 5, water temperature rise: mean 1.0 %, largest 1.8 % (0.76 K).
+- Figs. 6(a) and 6(b), thermocouple rise above the inlet: mean 0.5 %, largest 1.5 % (0.49 K).
+- Every difference, in Re and in the plotted quantity, is under 1 % of the axis span (Re 0–1800; ΔP 0–1 bar; water rise 0–80 K; thermocouple rise 10–100 K in Fig. 6(a) and 30–120 K in Fig. 6(b)).
+
+The largest differences in Figs. 4(a) and 5 are at markers that we class as partly hidden and leave out of the MAPE; among the points used in the MAPE the largest pressure-drop difference is 2.5 % (0.0020 bar at 0.079 bar). The hand readings agree with the digitized values to within the reading accuracy of the figures, and no data value changed. The data are therefore digitized, rechecked and hand-checked on a sample of 24 points.
 
 ### 7.7 Reference tables used to check the correlation coefficients
 
@@ -712,7 +721,7 @@ Our statement of validity is therefore: the model is validated for laminar water
 
 1. **Plenum losses are not explained.** The best pressure-drop agreement (9.7 %) leaves out the contraction and expansion losses in the plenums, which must be positive. With the paper's "close to unity" coefficients the model over-predicts by 27 %. The paper's own 3D model also over-predicts its data in its Fig. 4(b), by roughly 5–30 % (our visual reading, not digitized). The paper gives no K values and no plenum dimensions, so we cannot do better from the paper. The residual also has a trend with Re: the model is above the data at mid Re and below at Re above about 1300. Possible causes, none confirmed: the K values and plenum geometry, the friction exponent 0.58 (derived for fully developed flow) applied in the entrance region, and the 4 % flow-rate uncertainty. For the 1 kW study this matters through the ΔP constraint and the pumping term. We cover it with a sensitivity: for K_c + K_e from 0 to 3 the minimum lost-work design keeps the same geometry, its flow changes within ±1.5 % and its lost work within ±0.3 %, and the pumping-power saving against the minimum thermal resistance design moves between 61 % and 66 % (`analysis/results/phase1_plenum_K.csv`).
 2. **Viscosity exponents from a secondary source.** The exponents 0.14 and 0.58 of Eq. (12) are attributed to Kays and Crawford [13] but were taken as tabulated in the `ht` library. We have not checked the original table. The correction is essential for the pressure drop (34.6 % → 9.7 %), so this check matters; it is still open, and until it is done the exponents rest on a secondary source.
-3. **Hand check pending.** The digitized points have been checked by the script's own cross-checks and by an independent recheck, but not yet by a person reading points by hand (section 7.6).
+3. **Hand check on a sample only.** The digitized points have been checked by the script's own cross-checks, by an independent recheck, and by an independent hand check of 24 points, which agreed with the digitized values to within 1 % of every axis span (section 7.6). The other points rest on the first two checks.
 4. **Three-sided correction for `MY`.** Eq. (9) applied to the Muzychka-Yovanovich model is our extension, not a published result. `LG_3`, which is fully sourced, gives the same accuracy (4.5 %).
 5. **Remaining thermal bias.** TC1 at 200 W/cm² is under-predicted by up to about 8 % at low Re. The likely cause is conduction and spreading in the real three-dimensional copper block near the inlet, which a one-dimensional base model cannot represent. We have not tested this.
 6. **One benchmark.** The validation rests on one experiment, one geometry and an aspect ratio of 3.1 (section 8.5).
@@ -1083,7 +1092,7 @@ Table 24 lists what each module does and what goes in and out of it.
 
 | Script | What it does | Writes |
 |---|---|---|
-| `analysis/run_studies.py` | Studies 1–5 (`--only N` runs one study, `--quick` uses coarser grids) | `analysis/results/study1_…` to `study5_….csv`; also two early draft plots (`figures/study1_flow_sweep.png`, `figures/study3_inlet_temperature.png`) that this report does not use |
+| `analysis/run_studies.py` | Studies 1–5 (`--only N` runs one study, `--quick` uses coarser grids) | `analysis/results/study1_…` to `study5_….csv` |
 | `analysis/run_phase1_checks.py` | Phase 1 checks, parts `d7 d5 fd num digit cap` | `analysis/results/phase1_*.csv` |
 | `analysis/make_report_figures.py` | Figures 3–9 and 12–17 from the CSVs, the data files and the code; reruns no study | `figures/fig_*.png` |
 | `analysis/make_geometry_figures.py` | Figures 1 and 2 | `figures/geometry_*.png` |
@@ -1175,7 +1184,7 @@ The central question of the proposal (section 2) was: how much coolant flow is t
 3. **Assumed limits and parameters.** T_dev,max = 90 °C, R_TIM = 0.02 K/W and η_pump = 0.5 are our assumptions, without primary sources (D6, A9, A12), and so are the 50 kPa budget and T0 = 25 °C. R_TIM and T_dev,max decide where the device limit takes over (Study 3), and η_pump moves the optimum flow from 4.27 to 5.80 L/min (Study 4). The headline saving also depends on putting the pump inside the control volume (D7).
 4. **Uniform heat flux (A2).** Real processors have hot spots, so the real hottest point would be hotter than our T_dev, and the base-to-coolant loss would be distributed differently along the channel. Base conduction is one-dimensional, without lateral spreading (A3).
 5. **Equal flow per channel (A5).** We do not model the manifold. Maldistribution would leave some channels with less flow and higher wall temperatures, and the plenum losses would depend on the manifold shape.
-6. **Other simplifications and open items.** CV-L idealizes the coolant distribution unit as a reservoir at T_in; it is not a model of the whole loop. Study 3 was run only at the reference geometry. CV-P is not written to the results CSVs (its size in section 9.1 is a hand estimate checked against one model evaluation). The open items of the validation also apply here: one benchmark, viscosity exponents not yet checked in the original source, and the hand check of the digitized data still pending (section 8.6).
+6. **Other simplifications and open items.** CV-L idealizes the coolant distribution unit as a reservoir at T_in; it is not a model of the whole loop. Study 3 was run only at the reference geometry. CV-P is not written to the results CSVs (its size in section 9.1 is a hand estimate checked against one model evaluation). The open items of the validation also apply here: one benchmark, and viscosity exponents not yet checked in the original source (section 8.6). The digitized data were hand-checked on a sample of 24 points (section 7.6).
 7. **The optimum flow is for one cold plate whose heat is thrown away.** Our design flow, about 3.2 L/min per kW, is above the 1 to 2 L/min per kW of current practice. Two things in the problem set-up push it there (section 10.2). The objective counts the warming of the coolant as lost work, because the warm water is assumed to be rejected at T_in; with heat reuse the warming loss would shrink and the optimum would move to lower flow (an argument from Eq. 26, not a run). And rack-level limits on the pump and the coolant distribution unit are not modelled. The result should therefore be read as the thermodynamic optimum of one cold plate. It still uses 44 % less flow than the minimum thermal resistance design (5.66 L/min), and capping it at 2 L/min costs only 6.1 % more lost work (section 10.5.5).
 
 ### 13.2 Future work
@@ -1200,7 +1209,7 @@ Only sources already cited in the project documents are listed. Entries marked *
 8. I. H. Bell et al., "Pure and pseudo-pure fluid thermophysical property evaluation and the open-source thermophysical property library CoolProp," Ind. Eng. Chem. Res., vol. 53, pp. 2498–2508, 2014.
 9. P.-S. Lee and S. V. Garimella, "Thermally developing flow and heat transfer in rectangular microchannels of different aspect ratios," Int. J. Heat Mass Transfer, vol. 49, pp. 3060–3067, 2006. Used: Eqs. (11)–(13), (15), (16).
 10. Y. S. Muzychka and M. M. Yovanovich, "Laminar forced convection heat transfer in the combined entry region of non-circular ducts," ASME J. Heat Transfer, vol. 126, pp. 54–61, 2004. Used: Eqs. (21), (22), (42)–(47), Table 1.
-11. P.-S. Lee, S. V. Garimella and D. Liu, 2005, Table 2 (Wibulswas Nu_x values). *Incomplete: title and journal.*
+11. P.-S. Lee, S. V. Garimella and D. Liu, "Investigation of heat transfer in rectangular microchannels," Int. J. Heat Mass Transfer, vol. 48, no. 9, pp. 1688–1704, 2005, doi:10.1016/j.ijheatmasstransfer.2004.11.019. Used: Table 2 (Wibulswas Nu_x values).
 12. Duan and Ma, 2020, Table 3 (Shah and London apparent friction values) and Eq. (33) (Hagenbach factor, attributed to Steinke and Kandlikar). *Incomplete: full citation.*
 13. W. M. Kays and M. E. Crawford, Convective Heat and Mass Transfer, 3rd ed., 1993. Exponents quoted through the `ht` Python library (`wall_factor`); original table not yet checked.
 14. WebPlotDigitizer, https://automeris.io/WebPlotDigitizer (source used headless, AGPL-3.0; commit recorded in `validation/digitize/wpd_core/SOURCE_COMMIT.txt`).
@@ -1271,7 +1280,7 @@ Table B1 takes each promise of the submitted proposal (`docs/proposal_submitted.
 |---|---|---|
 | Reduced-order Python model of a water-cooled copper microchannel cold plate | sections 5, 11 | delivered |
 | Objective 1: device temperature, pressure drop and pump power for any w_c, w_f and flow | sections 5, 11 (`model.evaluate()`) | delivered |
-| Objective 2 and validation plan: run at the Qu and Mudawar conditions (21 channels, 231 × 713 µm), compare measured ΔP and temperatures, errors within about 10–15 % | sections 7, 8; Table 14 | delivered: 4.6 % thermocouple and 9.7 % ΔP MAPE, no tuning; the ΔP result leaves out plenum losses, which is unresolved (section 8.6) |
+| Objective 2 and validation plan: run at the Qu and Mudawar conditions (21 channels, 231 × 713 µm), compare measured ΔP and temperatures, errors within about 10–15 % | sections 7, 8; Tables 12, 14 | delivered: 4.6 % thermocouple and 9.7 % ΔP MAPE, no tuning; the ΔP result leaves out plenum losses, which is unresolved (section 8.6). The digitized data were rechecked and then hand-checked independently on 24 points, all within 1 % of the axis span (section 7.6) |
 | Fallback: switch to a developing-flow Nusselt correlation if the error is too large | sections 3, 6.1 | used: the fully developed model gave 49 %, so we switched to developing flow and also added three-sided heating, axial conduction, a wall-viscosity correction and apparent friction (Table 1) |
 | 1D resistance network in series: TIM, base, fin-array convection, coolant rise | section 5.2, Figure 3 | changed: the same chain, solved station by station along the channel, because h now depends on x |
 | Fully developed Nu and fRe (Shah and London), standard fin efficiency, CoolProp properties | sections 5.2–5.4, 6 | changed for Nu and friction (validation); fin efficiency and CoolProp as proposed |
@@ -1295,11 +1304,10 @@ Table B1 takes each promise of the submitted proposal (`docs/proposal_submitted.
 
 ## Appendix C. Commands to reproduce the numbers and figures
 
-All commands run from the repository folder with the virtual environment active (section 11.2). On Windows we set `$env:OPENBLAS_NUM_THREADS=1` first. Three cautions:
+All commands run from the repository folder with the virtual environment active (section 11.2). On Windows we set `$env:OPENBLAS_NUM_THREADS=1` first. Two cautions:
 
 - The scripts overwrite their output files. `validation/data/*.csv` holds the digitized data and should not be regenerated without need: the digitizer needs Node.js and `pdftoppm` (Poppler), which were available only on the Linux machine, and `fill_csv.py` rewrites the benchmark CSVs from the raw points. After any rerun, check that the status change made in the recheck (section 7.6) is still there.
 - `validation/run_validation.py` without options reruns the full model matrix. It now uses the 156 thermocouple points left after the recheck, while Tables 6 and 7 were made with 157 points, so the numbers can change slightly (4.60 → 4.61 % for the selected model).
-- `analysis/run_studies.py` also rewrites two early draft plots in `figures/` that this report does not use.
 
 **Table C1.** Where each number and figure comes from.
 
@@ -1310,6 +1318,7 @@ All commands run from the repository folder with the virtual environment active 
 | Flow rates from Re (section 7.2) | `python -c "from coldplate.benchmark import load_benchmark, flow_from_reynolds; bm = load_benchmark(); print([flow_from_reynolds(bm, R) * 6e7 for R in (139, 1672)])"` | printed, ml/min |
 | Table 11 (digitized points) | status column of `validation/data/qu_mudawar_dP.csv` and `qu_mudawar_thermal.csv`; produced by `python validation/digitize/qm_figures.py validation/data/raw/qu_mudawar_2002.pdf` and `python validation/digitize/fill_csv.py` (see the cautions) | `validation/data/raw/`, `validation/data/*.csv` |
 | Table 12 (recheck) | none; the recheck used separate code that is not in the repository | `validation/data/raw/recheck_log.md` |
+| Table 12 check 7 and section 7.6 (hand check) | none; hand readings in `validation/data/raw/hand_check_points.csv` compared with the matching rows of `qu_mudawar_dP.csv` and `qu_mudawar_thermal.csv` (CSV value as the reference); axis spans from the digitizer's frame boxes and calibration (`validation/digitize/qm_figures.py`, `validation/data/raw/fig*_meta.json`) | – |
 | Table 13 (coefficient checks) | `python -m pytest -q tests/test_correlations_developing.py tests/test_benchmark_optimize.py` | test result |
 | Tables 5–7, Table 14, Figure 12 data | `python validation/run_validation.py` | `validation/results/thermal_model_matrix.csv`, `dP_model_matrix.csv` |
 | Selected-model MAPE on the current data: 4.61 % thermocouples, 2.84 % water rise, 4.26 % pooled, 9.7 % ΔP (section 8.2) | `python -c "from coldplate.benchmark import compare; r = compare(include_minor=False); print(r['MAPE_TC'], r['MAPE_thermal'], r['MAPE_dP'])"` (`r['thermal']` holds the water-rise points) | printed |

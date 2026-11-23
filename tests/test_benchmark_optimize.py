@@ -7,7 +7,8 @@ import pytest
 
 from coldplate.benchmark import compare, flow_from_reynolds, load_benchmark, predict
 from coldplate.config import Case
-from coldplate.optimize import optimize_design
+from coldplate.geometry import derive
+from coldplate.optimize import optimize_design, snap_to_bounds, with_design
 
 
 @pytest.fixture(scope="module")
@@ -52,3 +53,18 @@ def test_min_thermal_resistance_design_is_feasible_and_beats_start():
     assert opt.result.feasible
     from coldplate.model import evaluate
     assert opt.result.R_th < evaluate(case).R_th
+
+
+def test_width_a_hair_above_bound_snaps_to_same_channel_count():
+    """SLSQP can return a width at its bound plus ~4e-15 m, which alone would drop
+    N from 150 to 149 (report section 6.7); snap_to_bounds must restore the bound."""
+    case = Case()
+    lo, hi = 0.1e-3, 1.0e-3
+    n_bound = derive(with_design(case, w_c=lo, w_f=lo).geometry).N
+    w = lo + 4e-15
+    assert derive(with_design(case, w_c=w, w_f=w).geometry).N == n_bound - 1   # the bug
+    ws = snap_to_bounds(w, lo, hi)
+    assert ws == lo
+    assert derive(with_design(case, w_c=ws, w_f=ws).geometry).N == n_bound == 150
+    assert snap_to_bounds(hi - 4e-15, lo, hi) == hi
+    assert snap_to_bounds(0.11e-3, lo, hi) == 0.11e-3                          # interior unchanged

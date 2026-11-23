@@ -11,3 +11,13 @@ venv/
 
 # publisher PDFs stay local (copyright)
 validation/data/raw/*.pdf
+
+# Word lock files
+~$*
+
+# local-only files (team organization, assistant instructions); not part of the repository
+CLAUDE.md
+.claude/
+docs/claude_code_plan.md
+docs/team_tasks.md
+team/

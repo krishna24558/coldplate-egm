@@ -88,4 +88,17 @@ Not covered by this recheck: a person's own reading (e.g. in the WebPlotDigitize
 - Geometry, conditions and sensor CSVs verified against the PDF text and Table 1 (`verified_against_pdf = yes`), including the Table 1 column alignment and the 2.462 mm thermocouple depth. Outlet pressure is still not reported in the paper.
 - The digitized points agree with an independent reading within the reading uncertainty (≤ 0.003 bar, ≤ 0.4 K).
 - Physical observations kept in the data: at 200 W/cm² the measured water ΔT is 2.5–5.7 % below the energy balance (within the 4 % flow uncertainty); the Re ≈ 442 run at 100 W/cm² reads about 5 % low on every sensor.
-- Still for a person: spot-check 5–10 points per figure in WebPlotDigitizer and look through the four `fig*_overlay.png` files.
+- Still for a person at the time of this recheck: spot-check points per figure in WebPlotDigitizer. Done afterwards; see "Hand check" below.
+
+## Hand check (independent, by hand in the WebPlotDigitizer browser app) — PASS
+
+Done after the recheck above, by the manual route of report section 7.4. 24 points were read by hand: 8 from Fig. 4(a), 8 from Fig. 5 and 8 from Figs. 6(a) and 6(b) (TC1–TC4 at 100 and 200 W/cm²), spread over the Re range and both heat fluxes. Readings: `raw/hand_check_points.csv` (its "Data" columns equal the benchmark CSV values; the original percentage columns divide by the hand reading). Each point was matched to its row in `qu_mudawar_dP.csv` / `qu_mudawar_thermal.csv` (same figure, heat flux, sensor, Re and value), and the agreement was recomputed with the CSV value as the reference. Axis spans from the digitizer's frame boxes and calibration (`digitize/qm_figures.py`, `raw/fig*_meta.json`): Re 0–1800, ΔP 0–1 bar, water rise 0–80 K, thermocouple rise 10–100 K (Fig. 6(a)) and 30–120 K (Fig. 6(b)).
+
+| Figure | Points | Re difference, largest | Value difference, mean / largest | Largest absolute | Largest, % of axis span (Re / value) |
+|---|---|---|---|---|---|
+| Fig. 4(a) ΔP | 8 (2 partly hidden) | 0.65 % | 1.2 % / 2.7 % | 0.0063 bar | 0.32 % / 0.63 % |
+| Fig. 5 water ΔT | 8 (2 partly hidden) | 1.39 % | 1.0 % / 1.8 % | 0.76 K | 0.43 % / 0.95 % |
+| Figs. 6(a)+(b) TC rise | 8 | 0.70 % | 0.5 % / 1.5 % | 0.49 K | 0.24 % / 0.54 % |
+
+- Every difference is under 1 % of the axis span. The largest Fig. 4(a) and Fig. 5 differences are at markers classed `digitized_partly_hidden` (left out of the MAPE); among the Fig. 4(a) points used in the MAPE the largest difference is 2.5 % (0.0020 bar at 0.079 bar).
+- **No data value or status changed.** The hand check closes the open item above.

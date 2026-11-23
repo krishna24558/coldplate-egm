@@ -128,6 +128,15 @@ class DesignOptimum:
     message: str
 
 
+def snap_to_bounds(w: float, lo: float, hi: float, tol: float = 1e-9) -> float:
+    """Return lo or hi if w is within tol of it (all in m), else w unchanged."""
+    if abs(w - lo) <= tol:
+        return lo
+    if abs(w - hi) <= tol:
+        return hi
+    return w
+
+
 def optimize_design(case: Case, objective: str, x0, bounds=None,
                     n_x: int = 21) -> DesignOptimum:
     """SLSQP over (w_c, w_f, V_dot) starting from x0 = (w_c [m], w_f [m], V_dot [m^3/s]).
@@ -174,7 +183,11 @@ def optimize_design(case: Case, objective: str, x0, bounds=None,
     r_frac = run(z)
     # Whole channels change dP and h slightly; re-tune the flow alone (smooth in V)
     # so the reported design satisfies the constraints with integer N.
-    w_c, w_f = z[0] * 1e-3, z[1] * 1e-3
+    # SLSQP can return a width at its bound as e.g. 0.1000000000041 mm, which drops
+    # N = floor(W / (w_c + w_f)) from 150 to 149 (report section 6.7). Snap widths
+    # within 1e-9 m of a bound onto the bound before counting whole channels.
+    w_c = snap_to_bounds(z[0] * 1e-3, bounds[0][0] * 1e-3, bounds[0][1] * 1e-3)
+    w_f = snap_to_bounds(z[1] * 1e-3, bounds[1][0] * 1e-3, bounds[1][1] * 1e-3)
     V_int = _polish_flow(case, objective, w_c, w_f, z[2], bounds[2])
     r_int = evaluate(with_design(case, w_c=w_c, w_f=w_f, V_dot=lpm(V_int)), n_x=41)
     return DesignOptimum(objective, w_c, w_f, lpm(V_int), r_frac, r_int,
