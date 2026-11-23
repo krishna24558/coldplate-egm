@@ -1,5 +1,12 @@
 # Project status
 
+**Update 2026-11-23, report passages on tests and the optimizer brought up to date.** Not committed.
+
+- `docs/final_report.md`: section 11.3: 52 tests in eight files; last full Windows run 2026-11-22 gave 51 passed, 1 skipped (Node.js not installed); the 2026-11-08 Linux run is described as all 51 tests of the suite at that time. Table 26: `test_benchmark_optimize.py` (6), with the new bound-snapping test. Section 11.4 "Optimizer" bullet and Table A1: the optimizer snaps widths within 10⁻⁹ m of a bound onto the bound (section 6.7); the Phase 1 runs additionally round widths to 1 nm.
+- Grep for "51 tests", "50 passed", "51 passed" in the report, README and `analysis/README.md`: only the corrected 11.3 sentence remains.
+- `docs/final_report.docx` re-exported: **62 pages** in Word.
+- The "not edited" item of the entry below is resolved by this update.
+
 **Update 2026-11-23, min R_th decision.** Decision: keep the committed `study2_designs.csv` and the report value 37.38 W for the minimum R_th design; Table 18, section 10.2, Figure 14 and the README table unchanged. Not committed.
 
 - `docs/final_report.md` section 6.7: the sentence "The optimizer function itself was not changed" replaced by: the optimizer now snaps a width within 10⁻⁹ m of a bound onto it, so the minimum lost-work design reproduces exactly (N = 150, 33.34 W); the minimum R_th design lies on the 50 kPa limit with an interior width, so reruns on other machines can give 37.38–37.39 W (about 0.01 %), savings unchanged at 63.2 % pumping and 10.8 % lost work.

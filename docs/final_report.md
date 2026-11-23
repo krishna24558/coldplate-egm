@@ -1125,7 +1125,7 @@ On Windows we set `$env:OPENBLAS_NUM_THREADS=1` in PowerShell first. NumPy other
 
 ### 11.3 Tests
 
-The test suite has 51 tests in eight files (`tests/`). The last full run on Windows (2026-11-16) gave **50 passed, 1 skipped**: the digitizer test needs Node.js, which is not installed on that machine, so it has only been run on Linux (51 passed there on 2026-11-08). Table 26 lists what the tests check.
+The test suite has 52 tests in eight files (`tests/`). The last full run on Windows (2026-11-22) gave **51 passed, 1 skipped**: the digitizer test needs Node.js, which is not installed on that machine, so it has only been run on Linux (where all 51 tests of the suite at that time passed on 2026-11-08). Table 26 lists what the tests check.
 
 **Table 26.** Test coverage.
 
@@ -1136,7 +1136,7 @@ The test suite has 51 tests in eight files (`tests/`). The last full run on Wind
 | `test_correlations_developing.py` (19) | fully developed limits; Lee–Garimella entry-length definition (7 aspect ratios), agreement with the Wibulswas table (aspect ratios 3 and 4) and approach to the fully developed value; Muzychka–Yovanovich circular-tube limit, square-duct friction, thermal part against Wibulswas, combined above thermal-only; apparent friction against Shah and London (3 aspect ratios); all friction models tend to the fully developed value; model registry and error handling |
 | `test_hydraulic_thermal.py` (7) | Poiseuille parallel-plate limit; friction ΔP ∝ V̇ and minor losses ∝ V̇²; a pump efficiency outside (0, 1] is rejected; fin-efficiency limits; energy balance and the temperature order T_in < T̄_f < T_out < T̄_s < T_dev; doubling the flow lowers T_dev but more than quadruples Ẇ_hyd; T_dev stays above the floor T_in + Q(R_conv + R_base + R_TIM) |
 | `test_second_law.py` (7) | Ṡ_gen > 0 for CV-C, CV-L, CV-P and each CV-L term over 0.5–8 L/min; the three CV-L terms sum to Eq. (19) to 10⁻¹²; mean-temperature CV-C and its split within 1 % of the exact value (A1); flow exergy zero at the dead state; interior lost-work optimum, Eq. (21) within 20 % of it and X_warm/X_pump between 1.5 and 3.5; with fully developed flow Ṡ_gen,C only rises with flow; with developing flow it stays positive |
-| `test_benchmark_optimize.py` (5) | benchmark geometry loads from the CSVs; the Re definition reproduces the paper's stated flow rates; prediction trends (ΔP above friction alone, TC1 < TC2 < TC3 < TC4, more flow gives more ΔP and less water warming); `compare()` runs; the minimum R_th optimization returns a feasible design better than its start |
+| `test_benchmark_optimize.py` (6) | benchmark geometry loads from the CSVs; the Re definition reproduces the paper's stated flow rates; prediction trends (ΔP above friction alone, TC1 < TC2 < TC3 < TC4, more flow gives more ΔP and less water warming); `compare()` runs; the minimum R_th optimization returns a feasible design better than its start; a width returned as the bound + 4 × 10⁻¹⁵ m is snapped to the bound and gives the same channel count (150) as the bound (section 6.7) |
 | `test_validation_qm.py` (5) | regression guard on the validation: data present (≥ 35 ΔP and ≥ 150 thermocouple points); selected model thermocouple MAPE < 10 %, water-rise MAPE < 5 %, ΔP MAPE < 15 %; fully developed model thermocouple MAPE > 30 % |
 | `test_digitizer.py` (1) | the digitizing pipeline recovers the markers of a synthetic plot within 0.3 % of the axis range (needs Node.js) |
 
@@ -1160,7 +1160,7 @@ In Phase 1 we checked that the numbers do not depend on the numerical settings (
 - **Grid.** The defaults are 41 stations for the 1 kW case, 61 for the benchmark (between the 41 and 81 of Table 27) and 21 inside the optimizer, whose final designs are re-evaluated with 41. All are converged to about 0.01–0.05 K and 0.05 % or better, far below the 4.6 % validation error.
 - **Energy balance.** For the reference design ṁ(h_out − h_in)/Q − 1 = 3 × 10⁻¹¹, and the convective heat integrated along the channel matches Q to 2 × 10⁻¹³ on all three grids. The solver rescales the convective heat so that the water receives exactly Q, so this closure holds by construction. It confirms the implementation; it is not an independent check.
 - **Property iteration.** Converged in 3 iterations at the default tolerance (10⁻⁶ K). With 10⁻¹⁰ K (9 iterations) T_dev is unchanged to 8 decimals, ΔP changes by 2 × 10⁻⁸ kPa and X_lost by about 10⁻⁹ W.
-- **Optimizer.** The integer-channel issue of section 6.7 (a width returned as 0.1000000000028 mm drops N from 150 to 149 and changes X_lost by 0.3 %) is handled in the Phase 1 runs by snapping the widths to 1 nm.
+- **Optimizer.** The integer-channel issue of section 6.7 (a width returned as 0.1000000000028 mm drops N from 150 to 149 and changes X_lost by 0.3 %) is handled in the optimizer, which snaps any width within 10⁻⁹ m of a bound onto the bound (section 6.7); the Phase 1 runs additionally round the widths to 1 nm.
 - **Not checked.** The wall-viscosity loop in `thermal.py` runs a fixed 4 passes with no convergence test; checking it needs a code change.
 
 ## 12. Conclusions
@@ -1239,7 +1239,7 @@ Table 4 (section 5.7) lists the modelling assumptions by their IDs in `docs/equa
 | – | Three-sided ratio of Eq. (9) applied to `MY` | our extension of Eq. (15) of [9] | `LG_3`, which is fully sourced, gives the same accuracy (4.5 % against 4.6 %) | 6.1 |
 | – | CV-L: the cooler is a reservoir at T_in, and the outlet heat is not reused | proposal | not varied; it creates the warming loss and pushes the optimum flow up | 9.1, 10.2 |
 | D7 | Pump inside CV-L, Ẇ_pump = Ẇ_elec | our choice | pump outside: same geometry, 26 % more flow, pumping-power saving 41 % instead of 63 % | 6.6, 10.5.2 |
-| – | Fractional channel count during SLSQP; widths snapped to 1 nm in the Phase 1 runs | our choice | whole-channel polish of every reported design; the snapping avoids a 0.3 % error from N = 149 | 6.7 |
+| – | Fractional channel count during SLSQP; widths within 10⁻⁹ m of a bound snapped onto the bound by the optimizer, and rounded to 1 nm in the Phase 1 runs | our choice | whole-channel polish of every reported design; the snapping avoids a 0.3 % error from N = 149 | 6.7 |
 
 **Table A2.** Assumed inputs and limits of the 1 kW case.
 
