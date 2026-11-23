@@ -1,14 +1,14 @@
 # Second-Law Analysis and Constrained Optimization of a Liquid-Cooled Cold Plate for a 1 kW Electronic Heat Source
 
-MEEN 615: Advanced Engineering Thermodynamics, Fall 2026, Final Report
-Group: Sai Krishna Kommineni, Suneel Kumar, Sam
+MEEN 615: Advanced Engineering Thermodynamics, Fall 2026, Final Report\
+Group: Sai Krishna Kommineni, Suneel Kumar, Sam\
 Instructor: Prof. Dion Antao
 
-<!-- Report status: sections 1-8 drafted 2026-11-16; sections 9, 10, 12, 13 drafted 2026-11-20. Still to write: section 11 (code structure), abstract, appendices; figures 3-9, 12-17 not made yet. Numbers come from docs/project_status.md, validation/README.md, validation/data/raw/recheck_log.md and the CSVs in analysis/results/ and validation/results/. -->
+<!-- Report status: sections 1-8 drafted 2026-11-16; sections 9, 10, 12, 13 drafted 2026-11-20; abstract, section 11, appendices A-C, figure captions and the flow-cap check added 2026-11-22. All 17 figures exist in figures/. Numbers come from docs/project_status.md, validation/README.md, validation/data/raw/recheck_log.md and the CSVs in analysis/results/ and validation/results/. -->
 
 ## 1. Abstract
 
-*(Placeholder: the abstract will be written after the results sections are finished.)*
+AI processors now dissipate close to 1 kW, and their cold plates are usually sized by minimizing thermal resistance, which always asks for more coolant flow. We used the second law to find how much flow, and what channel geometry, is worth it. We built a reduced-order Python model of a water-cooled copper microchannel cold plate for a 1 kW, 30 × 30 mm heat source and validated it against the experiments of Qu and Mudawar (2002). The fully developed model of our proposal failed (49 % thermocouple error). With developing-flow correlations, three-sided heating, axial conduction in the base and a wall-viscosity correction, and no tuning, the errors are 4.6 % for temperature and 9.7 % for pressure drop. Lost work was computed for the cold plate plus the return of the coolant to its inlet temperature. For 0.2 mm channels it is lowest at 5.13 L/min (analytical estimate 4.77 L/min). Optimizing channel width, fin thickness and flow together gives 0.1 mm channels and fins at 3.17 L/min. Against the minimum thermal resistance design, this uses 63 % less pumping power and has 10.8 % less lost work, for a device 1.40 K hotter (41 % less pumping power if the pump is left outside the control volume). Heat transfer from the base to the coolant is the largest loss, so geometry matters more than flow. At the 0.2 mm geometry the optimum stays feasible up to a 55 °C inlet; above that, the 90 °C device limit takes over.
 
 ## 2. Introduction and objective
 
@@ -37,7 +37,7 @@ We think the second-law view is useful for liquid cooling of AI chips for three 
 4. Find the flow and geometry that minimize lost work under the constraints and compare with the minimum thermal resistance design.
 5. Find the highest inlet temperature at which the optimum is still feasible, and the exergy of the outlet water.
 
-This part of the report (sections 2 to 8) covers objectives 1 and 2 and the modelling choices behind objectives 3 and 4. The second-law results and the design studies are in the later sections.
+Sections 4 to 8 cover objectives 1 and 2 and the modelling choices behind objectives 3 and 4. Sections 9 and 10 cover objectives 3 to 5. Section 11 describes the code, and sections 12 and 13 give the conclusions, the limitations and future work. Appendix A collects the assumptions, Appendix B checks the report against every promise of the proposal, and Appendix C gives the commands that reproduce each number and figure.
 
 ## 3. What we did, step by step
 
@@ -51,7 +51,7 @@ This part of the report (sections 2 to 8) covers objectives 1 and 2 and the mode
 
 **Step 5: recheck of the data.** The digitized points and the values taken from the paper's text were rechecked independently (section 7.6). No data value changed.
 
-**Step 6: design studies.** With the validated model as the default we ran the studies of the proposal on the 1 kW case (flow sweep, constrained optimization against the minimum thermal resistance design, inlet temperature sweep, sensitivities) and some extra checks (pump inside or outside the control volume, plenum loss coefficient, channels below the 0.1 mm bound, numerical convergence, digitizing uncertainty). The results are in the later sections; here we only use them where they justify a modelling choice.
+**Step 6: design studies.** With the validated model as the default we ran the studies of the proposal on the 1 kW case (flow sweep, constrained optimization against the minimum thermal resistance design, inlet temperature sweep, sensitivities) and some extra checks (pump inside or outside the control volume, plenum loss coefficient, channels below the 0.1 mm bound, numerical convergence, digitizing uncertainty, a flow cap of 2 L/min). The results are in sections 9 and 10; sections 4 to 8 use them only where they justify a modelling choice.
 
 Table 1 lists what changed from the proposal and why.
 
@@ -66,7 +66,8 @@ Table 1 lists what changed from the proposal and why.
 | Thermal model | one lumped resistance chain | the same chain solved station by station along the channel | needed because h now depends on x |
 | Validation target | 10–15 % | met: 4.6 % (thermal), 9.7 % (ΔP) | – |
 | First estimate of the optimum flow at 0.2 mm | 4 to 5 L/min | 5.13 L/min (validated model), 4.53 L/min (fully developed model) | with developing flow h rises with velocity, so the optimum moves to higher flow |
-| Extra studies | – | pump inside/outside the control volume, plenum K, channels below 0.1 mm, numerical checks, digitizing uncertainty | open questions that came up during the work |
+| Inlet temperature sweep | 20 to 50 °C | 20 to 60 °C | the device limit takes over between 55 and 57.5 °C, above the proposal's range |
+| Extra studies | – | minimum hydraulic power design, pump inside/outside the control volume, plenum K, channels below 0.1 mm, flow capped at 2 L/min, numerical checks, digitizing uncertainty | open questions that came up during the work |
 
 What did not change: the 1 kW case, the design variables and their ranges, the constraints, the objective (lost work in the control volume CV-L), the comparison design (minimum thermal resistance) and the benchmark.
 
@@ -78,7 +79,7 @@ The design case is not one specific product. We picked the inputs to represent a
 
 ![Figure 1](../figures/geometry_3d_design.png)
 
-**Figure 1.** The 1 kW design-case cold plate: 3D view and channel cross-section (`figures/geometry_3d_design.png`).
+**Figure 1.** The 1 kW design-case cold plate at the reference geometry (0.2 mm channels and fins, 75 channels). Left: 3D view with the lid removed and the chip below the base (vertical scale × 2.5). Right: channel cross-section to scale, D_h = 0.375 mm, H/w_c = 15 (`figures/geometry_3d_design.png`).
 
 **Table 2.** Design-case inputs.
 
@@ -92,7 +93,7 @@ The design case is not one specific product. We picked the inputs to represent a
 | Channel width w_c | reference 0.2 mm, range 0.1–1.0 mm | design variable |
 | Fin thickness w_f | reference 0.2 mm, range 0.1–0.5 mm | design variable |
 | Flow rate | reference 2 L/min, range 0.5–12 L/min | design variable |
-| Coolant, inlet temperature | water, 30 °C (study: 20–55 °C) | fixed / swept |
+| Coolant, inlet temperature | water, 30 °C (Study 3: 20–60 °C) | fixed / swept |
 | Junction + TIM resistance R_TIM | 0.02 K/W (about 20 K at full power) | assumed, varied in the sensitivity study |
 | Device temperature limit | 90 °C | constraint (assumed) |
 | Pressure-drop limit | 50 kPa | constraint (assumed) |
@@ -119,7 +120,7 @@ To check that the design case is realistic we compared it with published values 
 | Base thickness 1 mm | 1–3 mm for GPU/CPU cold plates | Shedd [15] |
 | L = 30 mm, footprint 30 × 30 mm | L_ch = 30 mm | Wang et al. [16] |
 | 1 kW on 9 cm² = 111 W/cm² | 100 W/cm² footprint flux; packages "climbing past 1500 W" | Wang et al. [16]; Shedd [15] |
-| Inlet water 30 °C (sweep 20–55 °C) | 45 °C inlet with PG25 coolant reported for GB200 (blog claim); ASHRAE classes W17–W45 | FiberMall [17]; ASHRAE [5] |
+| Inlet water 30 °C (sweep 20–60 °C) | 45 °C inlet with PG25 coolant reported for GB200 (blog claim); ASHRAE classes W17–W45 | FiberMall [17]; ASHRAE [5] |
 | ΔP limit 50 kPa | < 20 kPa cold plate pressure drop reported for GB200 (blog claim) | FiberMall [17] |
 | 2 L/min reference flow | 1.8 L/min per GB200 cold plate (blog claim) | FiberMall [17] |
 
@@ -131,7 +132,7 @@ The benchmark heat sink of Qu and Mudawar [1] has a different geometry: 21 chann
 
 ![Figure 2](../figures/geometry_design_vs_qm.png)
 
-**Figure 2.** Unit cells of the design case and of the Qu and Mudawar heat sink, with the dimensionless numbers of both (`figures/geometry_design_vs_qm.png`).
+**Figure 2.** Unit cells of the design case and of the Qu and Mudawar heat sink, drawn to the same scale, with the dimensionless numbers of both; the aspect ratio is the one quantity outside the benchmark's range (`figures/geometry_design_vs_qm.png`).
 
 ## 5. Model
 
@@ -153,7 +154,7 @@ The proposal's model was one chain of resistances (coolant warming, convection, 
 
 ![Figure 3](../figures/fig_B_network.png)
 
-**Figure 3.** Thermal network along the channel: device, TIM, base conduction (with axial conduction along the base), fin-array convection with local h(x), and the warming coolant. *(Figure not made yet: `figures/fig_B_network.png`.)*
+**Figure 3.** Thermal network. (a) One station: where the nodes T_dev, T_b, T_cf and T_f sit in the cross-section, and the resistance chain between them (TIM, lumped as Q R_TIM = 20 K on the hottest base point; base conduction, q″t_b/k_s = 2.85 K; convection from the channel floor and fins, 1/(G′Δx) with the local h(x)). (b) The same chain at every station along x, coupled by axial conduction between the T_cf nodes (adiabatic ends) and by the flow between the T_f nodes, with heat q′Δx entering each T_b node. The scale at the bottom shows the 41 station positions used for the design case, clustered toward the inlet (`figures/fig_B_network.png`).
 
 *Fluid.* With a uniform heat flux the heat input per unit length is q′ = Q/L. The fluid energy balance uses the CoolProp enthalpy, and the outlet state follows from the first law:
 
@@ -233,7 +234,7 @@ We use three control volumes and keep them separate (Figure 4).
 
 ![Figure 4](../figures/fig_C_control_volumes.png)
 
-**Figure 4.** Control volumes: CV-P (package and TIM), CV-C (cold plate only), CV-L (cold plate plus the return of the coolant to T_in; the objective). *(Figure not made yet: `figures/fig_C_control_volumes.png`.)*
+**Figure 4.** Control volumes: CV-P (package and TIM, dotted), CV-C (cold plate only, dashed) and CV-L (cold plate, pump and an idealized cooler that returns the water to T_in, dash-dot; the objective). Each CV-L loss term is tagged where it is destroyed: X_gap in the cold plate, X_pump at the pump, X_warm at the cooler. The device and TIM are drawn apart from the base only so that the three boundaries do not overlap. The key gives the reference-design values (0.2 / 0.2 mm, 2 L/min) from `study1_flow_sweep.csv`, including the link between CV-C and CV-L of Eq. (26): 36.97 + 11.34 + 0.35 = 48.66 W (`figures/fig_C_control_volumes.png`).
 
 *CV-P, package and TIM.* Heat Q leaves the junction at T_j and enters the base at T_s. This loss belongs to the package, not to the cold plate, and is reported separately:
 
@@ -265,13 +266,13 @@ $$\psi = (h - h_0) - T_0\,(s - s_0) \tag{22}$$
 
 ![Figure 5](../figures/fig_D_code_structure.png)
 
-**Figure 5.** Code structure: `config.py` (case) → `geometry.py` → `correlations.py` → `hydraulic.py` + `thermal.py` → `second_law.py` → `model.evaluate()` → `optimize.py` (studies) and `benchmark.py` (Qu and Mudawar, inputs from `validation/data/` only). *(Figure not made yet: `figures/fig_D_code_structure.png`.)*
+**Figure 5.** Code structure. `config.py` holds the 1 kW case; `model.evaluate()` (dashed box) calls `geometry.py` → `correlations.py` → `hydraulic.py` ⇄ `thermal.py` → `second_law.py`, with `properties.py` (CoolProp) as a side input to every module; the `Result` feeds `optimize.py` (studies) and `benchmark.py` (Qu and Mudawar, inputs from `validation/data/` only, never from `config.py`), which feed the analysis and validation scripts. Arrow labels name what is passed (`figures/fig_D_code_structure.png`).
 
 ![Figure 6](../figures/fig_E_solver_flowchart.png)
 
-**Figure 6.** Solution of one case: guess T_out and ΔP → properties → hydraulic model → thermal network (with the viscosity-correction passes) → update T_out and ΔP → repeat until converged → second-law terms and constraint margins. *(Figure not made yet: `figures/fig_E_solver_flowchart.png`.)*
+**Figure 6.** Solution of one case by `model.evaluate()`, as coded: first guess of T_out and ΔP → properties at the mean state → hydraulic model (stop with an error if P_out < 10 kPa) → thermal network with 4 fixed wall-viscosity passes → convergence test (T_out to 10⁻⁶ K and ΔP to 10⁻⁶ ΔP; 3 iterations for the reference design, at most 50) → second-law terms → entry lengths and constraint margins (`figures/fig_E_solver_flowchart.png`).
 
-Numerical checks (from `analysis/results/phase1_numerical_checks.csv`): going from 41 to 81 stations changes T_dev of the reference design by 0.010 K, ΔP by 0.003 % and X_lost by 0.016 %. Tightening the property-iteration tolerance from 10⁻⁶ to 10⁻¹⁰ K leaves T_dev unchanged to 8 decimals. The energy balance closes to 3 × 10⁻¹¹, but the solver rescales the convective heat so that the fluid receives exactly Q, so this confirms the implementation and is not an independent check. One thing is not checked: the viscosity-correction loop uses a fixed 4 passes with no convergence test.
+Section 11 describes each module, its inputs and outputs, and the tests. The numerical checks are in section 11.4: going from 41 to 81 stations changes T_dev of the reference design by 0.010 K and X_lost by 0.016 %, and tightening the iteration tolerance changes nothing that we report. One thing is not checked: the viscosity-correction loop uses a fixed 4 passes with no convergence test.
 
 ### 5.7 Assumptions
 
@@ -282,7 +283,7 @@ Table 4 lists the assumptions (IDs as in `docs/equation_sheet.md`) and where eac
 | ID | Assumption | Effect | Status in the final model |
 |---|---|---|---|
 | – | Steady, single-phase, laminar flow | sets the correlations we can use | laminar enforced by the Re ≤ 2000 constraint |
-| A1 | Heat enters CV-C at one mean temperature | small bias in the entropy-transfer term | not needed: the code uses the exact integral of Eq. (18); the mean-temperature value differs by < 0.1 % for the reference design |
+| A1 | Heat enters CV-C at one mean temperature | small bias in the entropy-transfer term | not needed: the code uses the exact integral of Eq. (18). For the reference design the mean-temperature boundary term Q/T̄_s differs from the integral by 0.006 %, and Ṡ_gen,C computed with it by 0.15 % |
 | A2 | Uniform heat flux over the footprint | no hotspots; T_dev is under-predicted for real chips | accepted |
 | A3 | 1D conduction through the base, no spreading | footprint equals heated area, so spreading is small | accepted for the 1 kW case |
 | A4 | Hottest device point above the outlet | – | replaced: T_dev uses the maximum of T_b(x), Eq. (7) |
@@ -323,7 +324,7 @@ The alternatives are:
 - `MY`: Muzychka and Yovanovich [10], Eq. (8), for simultaneously developing flow (velocity and temperature profiles both start at the inlet), any aspect ratio.
 - `LG_3`, `MY_3`: the same with the three-sided correction of Eq. (9).
 
-Table 6 gives the thermocouple MAPE for all 24 combinations with and without axial conduction and the viscosity correction (`validation/results/thermal_model_matrix.csv`, 157 points). Figure 7 shows why the fully developed models fail: the local Nusselt number near the inlet is several times the fully developed value, and in the benchmark the entry region covers much of the channel.
+Table 6 gives the thermocouple MAPE for all 24 combinations with and without axial conduction and the viscosity correction (`validation/results/thermal_model_matrix.csv`, 157 points). Figure 7 shows why the fully developed models fail. At one benchmark condition (100 W/cm², Re = 900), the developing-flow models give a local Nusselt number at TC1, 5 mm from the inlet, of 11.0 (`MY_3`) and 10.5 (`LG_3`), 2.3 and 2.2 times the fully developed value of 4.85, and still 1.29 times it at the outlet. The thermal entry length from Lee and Garimella ([9], Eq. 11) is 92 mm at this condition, twice the 44.8 mm channel, so the whole channel is thermally developing.
 
 **Table 6.** Thermocouple MAPE (%) of the 24 thermal model combinations. The water temperature rise (energy balance) is 2.8–2.9 % for every model.
 
@@ -338,7 +339,7 @@ Table 6 gives the thermocouple MAPE for all 24 combinations with and without axi
 
 ![Figure 7](../figures/fig_I_local_Nu.png)
 
-**Figure 7.** Local Nusselt number along the channel for the fully developed, Lee-Garimella and Muzychka-Yovanovich models. *(Figure not made yet: `figures/fig_I_local_Nu.png`.)*
+**Figure 7.** Local Nusselt number along the Qu and Mudawar channel for the three models as plotted: `fd_H1` (the proposal's fully developed, four-wall value), `LG_3` (Lee-Garimella, three walls) and `MY_3` (Muzychka-Yovanovich, three walls, selected). Condition: 100 W/cm², Re = 900, Pr = 6.95 (water at the 20.3 °C mean temperature of that run); correlations only, with constant properties and no wall-viscosity correction. The thin dotted line is the three-wall fully developed value `fd_H1_3` = 5.27; the vertical lines mark TC1–TC4 (`figures/fig_I_local_Nu.png`).
 
 What Table 6 shows:
 
@@ -356,7 +357,7 @@ The cost of this choice is that `LG_3` is fully sourced (Eq. 15 of [9]) while th
 
 ### 6.2 Three-sided heating
 
-The benchmark's cover plate is polycarbonate (k = 0.2 W/m·K), and a real cold plate has a lid that is not heated, so three walls are heated and the top is close to adiabatic. Alternatives: four heated walls (the standard duct correlations) or the ratio correction of Eq. (9). Evidence from Table 6: the three-sided version is better by 4.6 points for `LG` and 3.9 points for `MY` without other corrections, and by 3.1 and 2.0 points with all corrections. Physical reason and evidence agree, so we use it.
+The benchmark's cover plate is polycarbonate (k = 0.2 W/m·K), and a real cold plate has a lid that is not heated, so three walls are heated and the top is close to adiabatic. Alternatives: four heated walls (the standard duct correlations) or the ratio correction of Eq. (9). Evidence from Table 6: the three-sided version is better by 4.6 points for `LG` and 3.9 points for `MY` without other corrections, and by 3.1 and 2.0 points with all corrections. Physical reason and evidence agree, so we use it. A reader may be surprised by Figure 7: at the benchmark aspect ratio (H/w_c = 3.1) the three-wall fully developed value of Eq. (11) is higher than the four-wall value of Eq. (10), 5.27 against 4.85, so the ratio in Eq. (9) is 1.09 and the three-sided correction raises h. For the design case (H/w_c = 15) the ratio is 1.01. For a square duct the fits give the opposite order (3.55 against 3.61). We use the values as the fits give them; the fits themselves have not been checked in the original source (section 7.7).
 
 ### 6.3 Axial conduction in the base
 
@@ -395,7 +396,7 @@ The best agreement is without plenum losses, which cannot be exactly right becau
 
 ### 6.6 Objective control volume: CV-L with the pump inside
 
-*Why CV-L and not CV-C.* If the control volume is only the cold plate (CV-C, Eq. 18), more flow mainly makes the water colder. With the proposal's fully developed model, entropy generation in CV-C rises slightly with flow and there is no interior optimum. With the validated model h rises with velocity and CV-C becomes almost flat: 0.1237–0.1294 W/K over 1–8 L/min for the reference design, with a shallow minimum near 1–2 L/min. That is too weak to set a design. What CV-C misses is that the warm outlet water has to be cooled back to the inlet temperature somewhere. CV-L (Eq. 19) includes that return, which adds the coolant-warming term that falls with flow and gives a clear optimum. This is the control volume of the proposal. We still compute CV-C as a diagnostic.
+*Why CV-L and not CV-C.* If the control volume is only the cold plate (CV-C, Eq. 18), more flow mainly makes the water colder. With the proposal's fully developed model, entropy generation in CV-C rises slightly with flow and there is no interior optimum. With the validated model h rises with velocity and CV-C becomes almost flat: for the reference design it stays within 0.5 % (0.1234–0.1240 W/K) from 0.5 to 4.5 L/min, with its lowest value at 0.75 L/min, and only rises above that as friction grows (0.1294 W/K at 8 L/min; section 9.4). That is too weak to set a design. What CV-C misses is that the warm outlet water has to be cooled back to the inlet temperature somewhere. CV-L (Eq. 19) includes that return, which adds the coolant-warming term that falls with flow and gives a clear optimum. This is the control volume of the proposal. We still compute CV-C as a diagnostic.
 
 *Pump inside or outside.* The pump work in Eq. (19) can be the electrical input Ẇ_elec = V̇ΔP/η (pump inside the control volume, its losses counted) or the hydraulic power Ẇ_hyd = V̇ΔP (pump outside). We tested both through the full design optimization (`analysis/results/phase1_pump_cv.csv`):
 
@@ -460,7 +461,7 @@ The benchmark case is kept separate from the 1 kW case. Its inputs are stored in
 
 ![Figure 8](../figures/fig_F_benchmark_setup.png)
 
-**Figure 8.** The Qu and Mudawar test section as modelled: channels, cover, heaters, the four thermocouples below the channels and the pressure taps in the plenums. *(Figure not made yet: `figures/fig_F_benchmark_setup.png`.)*
+**Figure 8.** The Qu and Mudawar test section as modelled, and the model quantity compared with each sensor. (a) Section along a channel (x to scale, depth exaggerated): cover, plenums with the pressure and temperature sensors, and TC1–TC4 at 5.000, 16.588, 28.176 and 39.764 mm from the inlet, d = 2.462 mm below the channel floor. The heater layout and the plenum shape are not reported in the paper and are drawn schematically. (b) Cross-section to scale, with the inputs and the benchmark assumptions B1–B5. (c) Each measured quantity, its sensor location, the model quantity it is compared with, and the MAPE of the selected model (thermocouples 4.6 % on the 157-point matrix; 4.61 % on the 156 points after the recheck) (`figures/fig_F_benchmark_setup.png`).
 
 ### 7.2 Quantities taken from the paper
 
@@ -524,7 +525,7 @@ We compare like with like:
 
 ### 7.4 How a student would extract the data by hand
 
-This is the manual route with the free WebPlotDigitizer browser app (https://automeris.io/WebPlotDigitizer). It is the method we would recommend to someone repeating the work, and it is the method for the pending hand check (section 7.6).
+This is the manual route with the free WebPlotDigitizer browser app [14]. It is the method we would recommend to someone repeating the work, and it is the method for the pending hand check (section 7.6).
 
 1. **Get a clean image.** Open the PDF, zoom to 200–400 % on the figure and take a screenshot of just that plot (PNG). Higher resolution means a smaller reading error.
 2. **Load and calibrate.** *File → Load image*, choose *2D (X-Y) Plot*, then click four reference points: two on the x axis and two on the y axis, and type their values. Use tick marks far apart to reduce the error.
@@ -540,12 +541,12 @@ The figures have many markers, and repeat runs put markers partly on top of each
 
 ![Figure 9](../figures/fig_G_data_extraction.png)
 
-**Figure 9.** Data extraction pipeline: PDF page → 600-dpi image → frame and ticks → marker detection → calibration → raw points and overlay → benchmark CSVs. *(Figure not made yet: `figures/fig_G_data_extraction.png`.)*
+**Figure 9.** Data extraction, with Fig. 6(a) of the paper as the example: (a) original (PDF page 9 at 600 dpi) with the four calibration points ringed (Re 200 and 1600, 20 and 80 K); (b) detection overlay, a circle on every detected marker, coloured by series; (c, d) the same zoom in the original and the overlay, showing markers partly hidden behind repeat runs (magenta boxes); (e) the calibrated values (114 markers, 14 partly hidden). The strip at the bottom shows the pipeline: PDF page → 600-dpi image → frame lines and major ticks → template matching of the markers → WebPlotDigitizer calibration → raw points and overlay → benchmark CSVs (`figures/fig_G_data_extraction.png`).
 
 1. **Rendering.** Each PDF page is rendered at 600 dpi. The figures in the PDF are 600-dpi scans, so this is their native resolution.
 2. **Frame and tick detection.** The scans are slightly rotated. The four frame lines of each plot are fitted by least squares, and the major tick marks are detected on them. The values of the ticks were assigned by reading the axis labels in the figure.
 3. **Marker detection.** The markers (squares, diamonds, up and down triangles) are found by template matching. Templates are built from clean, isolated markers of the same figure, so their size and line width match the scan. The best match is accepted, its pixels are marked as explained, and the search is repeated. A later match must explain enough new ink, which is how a marker partly hidden behind another one is still found. The legend is excluded. The position of a marker is its area centroid.
-4. **Calibration with WebPlotDigitizer, headless.** The pixel positions are converted to data values by WebPlotDigitizer's own axis calibration (4 points on major ticks, rotation corrected), run from its unmodified source code without the browser.
+4. **Calibration with WebPlotDigitizer, headless.** The pixel positions are converted to data values by WebPlotDigitizer's own axis calibration [14] (4 points on major ticks, rotation corrected), run from its unmodified source code without the browser.
 5. **Cross-check with WebPlotDigitizer's blob detector.** WebPlotDigitizer's own marker detection is run on the same image. For isolated markers the two methods must agree within 1.5 px.
 6. **Outputs.** For each panel a raw CSV (pixel and data coordinates, shape, series, flags) and an overlay image with every detected marker circled, for the visual check. A second script copies the raw points into the benchmark CSVs with a status and a reading uncertainty.
 
@@ -636,15 +637,15 @@ Figure 10 shows the data and the model against Re, and Figure 11 the parity plot
 
 ![Figure 10](../figures/validation_vs_Re.png)
 
-**Figure 10.** Qu and Mudawar data (symbols) against the model. Left and middle: thermocouple rise above the inlet, TC1–TC4, at 100 and 200 W/cm²; solid lines are the selected model, dashed lines the fully developed model of the proposal. Right: plenum-to-plenum pressure drop; solid line selected model without plenum losses, dotted line with K = 1, dashed line fully developed model (lines for 100 W/cm²).
+**Figure 10.** Qu and Mudawar data (open symbols) against the model. Left and middle: thermocouple rise above the inlet, TC1–TC4 (line colours blue, orange, green, red), at 100 and 200 W/cm²; solid lines are the selected model, dashed lines the fully developed model of the proposal (`fd_H1`, fully developed friction, no viscosity correction, plenum losses K_c = K_e = 1). Right: plenum-to-plenum pressure drop; solid line selected model without plenum losses, dotted line the same with K_c = K_e = 1, dashed line the fully developed model (model lines for 100 W/cm² only) (`figures/validation_vs_Re.png`).
 
 In Figure 10 the fully developed model (dashed) is almost flat with Re at high flow, because its h does not depend on velocity, while the data keep falling. The selected model follows the data in level and slope for all four thermocouples. At 200 W/cm² it lies a little above TC2–TC4 and below TC1 at low Re. In the pressure-drop panel the data lie between the selected model without plenum losses and the same model with K = 1 at high Re.
 
 ![Figure 11](../figures/validation_parity.png)
 
-**Figure 11.** Parity plots for the selected model: pressure drop (left; dotted lines ±10 %) and thermocouple temperatures in °C (right).
+**Figure 11.** Parity plots for the selected model (`MY_3`, axial conduction, wall viscosity, `MY` friction, no plenum losses): pressure drop, 39 points (left; dotted lines ±10 %), and thermocouple temperature rise above the inlet in K, 156 points (right) (`figures/validation_parity.png`).
 
-One inconsistency in Figure 11 that we have not resolved: the title of the right panel in the current file says "MAPE 4.3 %", while the model matrix and `validation/README.md` give 4.6 % for the same model. We do not know which point set or definition the figure script used for its title. We use the matrix value (4.6 %) everywhere, and the figure has to be regenerated and checked before the report is final.
+The right panel of Figure 11 gives a thermocouple MAPE of 4.6 % (4.61 % on the 156 points left after the recheck), the same as Table 14. An earlier version of this figure said 4.3 %. We traced the difference: one run of the comparison gives 4.61 % on the 156 thermocouple points, 2.84 % on the 38 water-temperature-rise points, and 4.26 % if the two sets are pooled into one mean. The old title used that pooled mean. The figure was regenerated with the thermocouple-only value, which is the one used everywhere in this report.
 
 ### 8.3 Model-by-model errors
 
@@ -652,7 +653,7 @@ Figure 12 shows the MAPE of every model combination (the numbers of Tables 6 and
 
 ![Figure 12](../figures/fig_H_model_mape.png)
 
-**Figure 12.** Thermocouple and pressure-drop MAPE for each model combination. *(Figure not made yet: `figures/fig_H_model_mape.png`.)*
+**Figure 12.** MAPE of every model combination on the Qu and Mudawar data. (a) Thermocouple temperature rise, by Nusselt model, 157 points (Table 6). (b) Plenum-to-plenum pressure drop, by friction model, 39 points (Table 7), computed with the selected thermal model (`MY_3` with axial conduction). Shaded band: the proposal's 10–15 % target (`figures/fig_H_model_mape.png`).
 
 Reading the thermal results as a sequence of steps for the Muzychka-Yovanovich family (Table 6):
 
@@ -710,7 +711,7 @@ Our statement of validity is therefore: the model is validated for laminar water
 ### 8.6 Limitations
 
 1. **Plenum losses are not explained.** The best pressure-drop agreement (9.7 %) leaves out the contraction and expansion losses in the plenums, which must be positive. With the paper's "close to unity" coefficients the model over-predicts by 27 %. The paper's own 3D model also over-predicts its data in its Fig. 4(b), by roughly 5–30 % (our visual reading, not digitized). The paper gives no K values and no plenum dimensions, so we cannot do better from the paper. The residual also has a trend with Re: the model is above the data at mid Re and below at Re above about 1300. Possible causes, none confirmed: the K values and plenum geometry, the friction exponent 0.58 (derived for fully developed flow) applied in the entrance region, and the 4 % flow-rate uncertainty. For the 1 kW study this matters through the ΔP constraint and the pumping term. We cover it with a sensitivity: for K_c + K_e from 0 to 3 the minimum lost-work design keeps the same geometry, its flow changes within ±1.5 % and its lost work within ±0.3 %, and the pumping-power saving against the minimum thermal resistance design moves between 61 % and 66 % (`analysis/results/phase1_plenum_K.csv`).
-2. **Viscosity exponents from a secondary source.** The exponents 0.14 and 0.58 of Eq. (12) are attributed to Kays and Crawford [13] but were taken as tabulated in the `ht` library. We have not checked the original table. The correction is essential for the pressure drop (34.6 % → 9.7 %), so this check is needed before the report is final.
+2. **Viscosity exponents from a secondary source.** The exponents 0.14 and 0.58 of Eq. (12) are attributed to Kays and Crawford [13] but were taken as tabulated in the `ht` library. We have not checked the original table. The correction is essential for the pressure drop (34.6 % → 9.7 %), so this check matters; it is still open, and until it is done the exponents rest on a secondary source.
 3. **Hand check pending.** The digitized points have been checked by the script's own cross-checks and by an independent recheck, but not yet by a person reading points by hand (section 7.6).
 4. **Three-sided correction for `MY`.** Eq. (9) applied to the Muzychka-Yovanovich model is our extension, not a published result. `LG_3`, which is fully sourced, gives the same accuracy (4.5 %).
 5. **Remaining thermal bias.** TC1 at 200 W/cm² is under-predicted by up to about 8 % at low Re. The likely cause is conduction and spreading in the real three-dimensional copper block near the inlet, which a one-dimensional base model cannot represent. We have not tested this.
@@ -740,7 +741,7 @@ CV-P is the package designer's problem. Its effect on the cold plate is through 
 
 $$\dot S_{gen,C} \approx \underbrace{Q\left(\frac{1}{\bar T_f} - \frac{1}{\bar T_s}\right)}_{\text{heat transfer, base to water}} + \underbrace{\frac{\dot V\,\Delta P}{\bar T_f}}_{\text{friction}} \tag{24}$$
 
-So CV-C contains only two irreversibilities: heat falling from the base to the water, and viscous friction, which dissipates the hydraulic power Ẇ_hyd at about the water temperature. It has no term for the warming of the coolant above T_in. The mean-temperature form differs from the exact integral by less than 0.1 % for the reference design (assumption A1, Table 4).
+So CV-C contains only two irreversibilities: heat falling from the base to the water, and viscous friction, which dissipates the hydraulic power Ẇ_hyd at about the water temperature. It has no term for the warming of the coolant above T_in. For the reference design the two terms of Eq. (24) add up to within 0.5 % of the exact Ṡ_gen,C of Eq. (18), and replacing the exact boundary integral by Q/T̄_s changes Ṡ_gen,C by 0.15 % (assumption A1, Table 4).
 
 *CV-L (cold plate plus the return to T_in).* CV-L contains the cold plate, the pump and an idealized cooler that brings the water back to T_in and rejects heat to a reservoir at T_in. The water returns to its inlet state, so the flow terms of Eq. (23) cancel. Heat Q enters at the base, the pump adds work Ẇ_pump, and by the energy balance Q + Ẇ_pump leaves at T_in. Eq. (23) becomes 0 = Q/T̄_s − (Q + Ẇ_pump)/T_in + Ṡ_gen,L, which is Eq. (19). Here T̄_s is the effective temperature at which the heat enters, defined by Q/T̄_s = ∫ q″/T_b dA, so CV-L uses the same exact boundary term as CV-C. Multiplying by T0 and rearranging gives the same result as an exergy balance:
 
@@ -752,7 +753,7 @@ The lost work is the exergy put in (the pump work, and the heat Q at T̄_s) minu
 
 $$X_{lost,L} = T_0\,\dot S_{gen,C} + \left[X_{out} - Q\left(1 - \frac{T_0}{T_{in}}\right)\right] + \frac{T_0}{T_{in}}\,\dot W_{pump} \tag{26}$$
 
-The first term is what the cold plate itself destroys. The bracket is what the cooler destroys when it brings the outlet water back to T_in: the water arrives carrying X_out, and only Q(1 − T0/T_in) leaves with the rejected heat. The last term is the pump term X_pump. Eq. (26) closes to rounding at all 25 points of the Study 1 sweep. At 2 L/min, for example, 36.97 + (27.84 − 16.49) + 0.35 = 48.66 W, which is the X_lost of the model. Eq. (26) shows where the coolant-warming loss sits in CV-C: it leaves the cold plate as exergy of the warm outlet water and is destroyed later, in the cooler. Section 9.4 builds on this.
+The first term is what the cold plate itself destroys. The bracket is what the cooler destroys when it brings the outlet water back to T_in: the water arrives carrying X_out, and only Q(1 − T0/T_in) leaves with the rejected heat. The last term is the pump term X_pump. Eq. (26) closes to within 10⁻⁷ W at all 27 points of the Study 1 sweep (0.5 to 12 L/min, including the two infeasible ones). At 2 L/min, for example, 36.97 + (27.84 − 16.49) + 0.35 = 48.66 W, which is the X_lost of the model. Eq. (26) shows where the coolant-warming loss sits in CV-C: it leaves the cold plate as exergy of the warm outlet water and is destroyed later, in the cooler. Section 9.4 builds on this.
 
 ### 9.2 The three loss terms of CV-L and how they scale with flow
 
@@ -772,7 +773,7 @@ Eq. (20) splits CV-L at the mean water temperature T̄_f into coolant warming, b
 
 ![Figure 13](../figures/fig_J1_flow_sweep.png)
 
-**Figure 13.** Study 1: lost work of CV-L and its three terms against flow for the reference geometry, with the numerical optimum (5.13 L/min) and the estimate of Eq. (21) (4.77 L/min) marked. *(Figure not made yet: `figures/fig_J1_flow_sweep.png`. A draft without the Eq. (21) marker exists as `figures/study1_flow_sweep.png`.)*
+**Figure 13.** Study 1: lost work of CV-L and its three terms against flow for the reference geometry (0.2 / 0.2 mm, 75 channels, 1 kW, 30 °C inlet), with the numerical optimum (star and solid line, 5.13 L/min, 43.05 W) and the estimate of Eq. (21) (dotted line, 4.77 L/min). Shaded: infeasible flows. The edge is where Re reaches 2000, at about 11.4 L/min, found by linear interpolation between the 11.0 L/min (feasible) and 11.5 L/min (infeasible) sweep points; ΔP passes 50 kPa just above it, at about 11.5 L/min (`figures/fig_J1_flow_sweep.png`).
 
 The three terms can be written as
 
@@ -828,8 +829,8 @@ The validation section of the proposal asked for two second-law checks: entropy 
 
 - **Ṡ_gen > 0.** Every CV-C and CV-L value in the study CSVs is positive, and CV-P is positive by construction (T_j > T_s). The test suite checks Ṡ_gen > 0 over a flow sweep.
 - **Warming ≈ 2 × pumping at the optimum.** 1.62 with the validated model and 2.43 with the fully developed model. Both deviations are explained by Eq. (28) (section 9.3).
-- **Closure.** The three CV-L terms sum to the closed form of Eq. (19) (test), and the link between CV-C and CV-L, Eq. (26), closes at all 25 sweep points.
-- **Boundary temperature.** The exact CV-C boundary term and the mean-temperature form differ by less than 0.1 % (A1).
+- **Closure.** The three CV-L terms sum to the closed form of Eq. (19) (test), and the link between CV-C and CV-L, Eq. (26), closes at all 27 sweep points.
+- **Boundary temperature.** For the reference design the exact CV-C boundary term ∫q″/T_b dA and the mean-temperature form Q/T̄_s differ by 0.006 %. Because Ṡ_gen,C is a small difference of two large terms, it changes by 0.15 % when the mean form is used (A1); the test allows 1 %.
 - **Dead state.** The flow exergy is zero at the dead state (test). Lost work is proportional to T0 and the optimum flow does not depend on it: Study 4 gives 40.89 W at T0 = 10 °C and 44.50 W at 35 °C, which is 43.05 W × T0/298.15 K, at the same 5.13 L/min (section 10.4).
 
 ## 10. Design studies and results
@@ -842,7 +843,7 @@ This section gives the four studies of the proposal and the extra checks of Phas
 | 2 | w_c, w_f and flow, three objectives | `analysis/results/study2_designs.csv` |
 | 3 | inlet temperature 20–60 °C, reference geometry | `analysis/results/study3_inlet_temperature.csv` |
 | 4 | R_TIM, η_pump, T0, plenum K | `analysis/results/study4_sensitivity.csv` |
-| Phase 1 | channels below 0.1 mm; pump inside or outside CV-L; plenum K on the design optimum; fully developed model | `study5_below_limit.csv`, `phase1_pump_cv.csv`, `phase1_plenum_K.csv`, `phase1_fd_vs_validated.csv` |
+| Phase 1 | channels below 0.1 mm; pump inside or outside CV-L; plenum K on the design optimum; fully developed model; flow capped at 2 L/min | `study5_below_limit.csv`, `phase1_pump_cv.csv`, `phase1_plenum_K.csv`, `phase1_fd_vs_validated.csv`, `phase1_flow_cap.csv` |
 
 ### 10.1 Study 1: flow sweep at the reference geometry
 
@@ -880,9 +881,9 @@ Study 2 optimizes w_c, w_f and the flow together (grid sweep, SLSQP and the whol
 
 ![Figure 14](../figures/fig_J2_designs.png)
 
-**Figure 14.** Study 2: lost work split into its three terms, hydraulic power and device temperature for the reference, minimum lost-work, minimum thermal resistance and minimum hydraulic power designs. *(Figure not made yet: `figures/fig_J2_designs.png`.)*
+**Figure 14.** Study 2: (a) lost work split into its three terms, (b) hydraulic power V̇ΔP (the pump electricity is twice this at η_pump = 0.5) and (c) device temperature with the 90 °C limit, for the reference, minimum lost-work, minimum thermal resistance and minimum hydraulic power designs. The arrows mark the differences between the minimum lost-work and minimum R_th designs (−10.8 % lost work, −63 % hydraulic power, +1.40 K). The T_dev bars start at the 30 °C inlet (`figures/fig_J2_designs.png`).
 
-**Result.** Against the minimum thermal resistance design, the lost-work design uses 44 % less flow (3.17 against 5.66 L/min) and **63 % less pumping power** (1.74 against 4.72 W hydraulic; 3.48 against 9.43 W of pump electricity at η_pump = 0.5). It has **10.8 % less lost work** (33.34 against 37.38 W), and its device runs **1.40 K hotter** (61.57 against 60.17 °C), which is a 4.6 % higher thermal resistance. The saving depends on two of our choices, the pump inside CV-L and η_pump = 0.5 (section 6.6). With the pump outside the control volume it is 41 % (section 10.5).
+**Result.** Against the minimum thermal resistance design, the lost-work design uses 44 % less flow (3.17 against 5.66 L/min) and **63 % less pumping power** (1.74 against 4.72 W hydraulic; 3.48 against 9.43 W of pump electricity at η_pump = 0.5). It has **10.8 % less lost work** (33.34 against 37.38 W), and its device runs **1.40 K hotter** (61.57 against 60.17 °C), which is a 4.6 % higher thermal resistance. The saving depends on two of our choices, the pump inside CV-L and η_pump = 0.5 (section 6.6). With the pump outside the control volume it is 41 % (section 10.5.2).
 
 **Physics.** The two designs almost agree on the geometry and differ in the flow:
 
@@ -894,11 +895,18 @@ The minimum hydraulic power design shows the other extreme. It barely pumps (0.0
 
 **For a designer.** The minimum thermal resistance design buys 1.4 K of device temperature for 2.7 times the pump power. At 61.6 °C the lost-work design still has 28.4 K of margin to the 90 °C limit, so the extra 1.4 K is rarely worth it. A second point matters as much: a design that sits on a constraint inherits every uncertainty in that constraint. If the 50 kPa budget were raised, the minimum R_th design would take more flow and more pump power. The lost-work design would not change, because its ΔP limit is not active. Section 10.5 shows the same thing for the uncertain plenum losses.
 
+**Why more flow than current practice?** The lost-work design uses 3.17 L/min for 1 kW, about 3.2 L/min per kW. That is above the 1 to 2 L/min per kW that our proposal quotes as typical industry practice. We see two reasons, and both come from what the model is asked to do, not from an error in it:
+
+1. *The objective counts the warming of the coolant as lost work.* In CV-L the warm outlet water is assumed to be cooled back to T_in, so its exergy is destroyed in the cooler (Eq. 26, section 9.4). That loss, X_warm ≈ B/V̇, is what pushes the optimum toward higher flow. If the heat were reused instead (building or district heating, for example), the exergy of the outlet water would be a product, not a loss. The warming term would shrink and the optimum would move to lower flow. We have not run this case; it follows from Eq. (26), not from a model run.
+2. *Rack-level limits are not modelled.* We optimize one cold plate with a 50 kPa budget. In a rack, dozens of cold plates share one pump and one coolant distribution unit, whose flow, head and cost limit the flow per cold plate. None of this is in our objective or constraints.
+
+So 3.2 L/min per kW is the thermodynamic optimum for one cold plate whose heat is rejected at T_in, not a flow recommendation for a rack. Two numbers put it in context. Against the minimum thermal resistance design (5.66 L/min), our design already uses 44 % less flow. And capping the flow at 2 L/min, the top of current practice, costs only 6.1 % more lost work with the same geometry (section 10.5.5).
+
 ### 10.3 Study 3: inlet temperature from 20 to 60 °C
 
 At the reference geometry we found the lost-work optimum flow, subject to the device, ΔP and Re limits, for inlet temperatures from 20 to 60 °C in steps of 2.5 K. The proposal's range is 20 to 50 °C; we extended it to 60 °C to find where the device limit takes over. The CSV also gives a "floor" temperature, T_in + Q(R_conv + R_base + R_TIM). This is the device temperature without the coolant temperature rise, evaluated at the flow found. Table 19 and Figure 15 give the results.
 
-**Table 19.** Study 3, reference geometry (`analysis/results/study3_inlet_temperature.csv`; selected rows).
+**Table 19.** Study 3, reference geometry (`analysis/results/study3_inlet_temperature.csv`; selected rows). The 30 °C row is the baseline of Study 1 from a separate optimizer run: it gives 5.137 L/min, Re 918 and 64.86 °C, where Study 1 and Table 20 give 5.132 L/min, Re 917 and 64.87 °C. The two runs differ by 0.1 % in flow, well inside the flat minimum (the lost work is 43.05 W in both). Elsewhere in the report we quote the Study 1 value, 5.13 L/min.
 
 | T_in (°C) | V̇* (L/min) | Re | ΔP (kPa) | T_dev (°C) | X_lost (W) | X_out (W) | Status |
 |---|---|---|---|---|---|---|---|
@@ -916,7 +924,7 @@ At the reference geometry we found the lost-work optimum flow, subject to the de
 
 ![Figure 15](../figures/fig_J3_inlet_temperature.png)
 
-**Figure 15.** Study 3: optimum flow, device temperature (with the 90 °C limit), lost work and outlet exergy against inlet temperature, reference geometry. *(Figure not made yet: `figures/fig_J3_inlet_temperature.png`. A draft exists as `figures/study3_inlet_temperature.png`.)*
+**Figure 15.** Study 3, reference geometry at its lost-work optimum flow: (a) optimum flow, (b) device temperature with the 90 °C limit, (c) lost work and outlet exergy, against inlet temperature. Shaded: no feasible optimum (57.5 °C and above). Open circle: at 57.5 °C, holding 90 °C needs 13.5 L/min and Re 3834. Cross: at 60 °C the floor temperature is 90.33 °C, above the limit at any flow. The dotted line in (c) marks the dead state, T0 = 25 °C (`figures/fig_J3_inlet_temperature.png`).
 
 **Result and physics.**
 
@@ -947,7 +955,7 @@ At the reference geometry we changed one input at a time and found the new optim
 
 ![Figure 16](../figures/fig_J4_sensitivity.png)
 
-**Figure 16.** Study 4: change of the optimum flow, lost work and device temperature for each input. *(Figure not made yet: `figures/fig_J4_sensitivity.png`.)*
+**Figure 16.** Study 4: change of (a) the optimum flow (%), (b) the lost work at the optimum (%) and (c) the device temperature (K) when one input is changed at a time, against the baseline 5.13 L/min, 43.05 W and 64.87 °C. Hatched bars: lower input value; solid bars: higher input value; the bar labels give the new value (`figures/fig_J4_sensitivity.png`).
 
 **Result and physics.**
 
@@ -979,7 +987,7 @@ The lost-work design sits at the 0.1 mm manufacturing bound. To see what the bou
 
 ![Figure 17](../figures/fig_J5_below_limit.png)
 
-**Figure 17.** Study 5: lost work and its terms, and the optimum flow, against w_c = w_f below and above the 0.1 mm bound, with the active limit marked. *(Figure not made yet: `figures/fig_J5_below_limit.png`.)*
+**Figure 17.** Study 5: (a) lost work and its three terms and (b) the optimum flow, with ΔP at that flow, against w_c = w_f, below (shaded) and above the 0.1 mm bound. In (b) the open circle is the optimum flow with no limits and the filled line the optimum within the limits; at 0.05 mm the ΔP limit is active (1.32 L/min, 50.0 kPa). Star: free optimum with 0.05 mm bounds (w_c 0.069 mm, w_f 0.050 mm, 31.28 W). H/w_c is 30–60 here, outside the validated aspect ratio (`figures/fig_J5_below_limit.png`).
 
 **Result and physics.** Narrower channels and fins lower the gap term steadily (35.62 W at 0.2 mm to 15.24 W at 0.05 mm), for the reasons of section 10.2: higher h and more area. But friction per unit flow rises as D_h shrinks, so the optimum flow falls (5.13 to 2.03 L/min unconstrained), and with less flow the warming term grows (4.60 to 8.89 W at 0.075 mm). Down to about 0.07 mm the gain in the gap term wins. At 0.05 mm the ΔP limit takes over and cuts the flow from 2.03 to 1.32 L/min, the warming term jumps to 17.73 W and the lost work rises again. The best design with 0.05 mm bounds (w_c 0.069 mm, w_f at 0.050 mm) has 31.28 W, 6.2 % below the 0.1 mm design. At 0.075 mm the gain is 3.9 %.
 
@@ -1003,9 +1011,30 @@ Table 9 (section 6.8) gives the comparison. On the 1 kW case the two models diff
 
 For a designer: the correlation choice matters for predicting T_dev to within about 1.5 K and for the optimum flow of wide, fast channels. It does not change which geometry is best or how much the second-law design saves.
 
-#### 10.5.5 Summary of the robustness checks
+#### 10.5.5 Capping the flow at 2 L/min
 
-**Table 22.** The Study 2 comparison under each changed assumption (minimum lost-work design against minimum R_th design, same constraints). Sources: `phase1_plenum_K.csv`, `phase1_pump_cv.csv`, `phase1_fd_vs_validated.csv`.
+Our lost-work design uses 3.17 L/min for 1 kW, more than the 1 to 2 L/min per kW that our proposal quotes as typical industry practice (section 10.2 discusses why). To see what it would cost to stay inside that practice, we reran the Study 2 lost-work optimization with one extra limit, V̇ ≤ 2 L/min. The procedure is the same as for the other Phase 1 optima: grid sweep without the flows above the cap, SLSQP, widths snapped to 1 nm, and the whole-channel flow polish, with the cap as the upper flow bound in every step (`analysis/results/phase1_flow_cap.csv`).
+
+**Table 22.** Minimum lost-work design with and without a flow cap (`phase1_flow_cap.csv`; the row without a cap is copied from `phase1_pump_cv.csv`). Pump inside CV-L, η_pump = 0.5, K_c + K_e = 1.5.
+
+| | No flow cap | V̇ ≤ 2 L/min |
+|---|---|---|
+| w_c / w_f (mm), N | 0.100 / 0.100, 150 | 0.100 / 0.100, 150 |
+| V̇ (L/min), Re | 3.17, 298 | 2.00, 193 |
+| ΔP (kPa) | 32.9 | 19.9 |
+| T_dev (°C) | 61.57 | 64.07 |
+| X_warm / X_gap / X_pump (W) | 7.40 / 22.52 / 3.42 | 11.71 / 22.35 / 1.30 |
+| X_lost (W) | 33.34 | **35.37 (+2.03 W, +6.1 %)** |
+| Ẇ_hyd [Ẇ_elec] (W) | 1.74 [3.48] | 0.66 [1.33] |
+| Limits reached | w_c and w_f at the 0.1 mm bound | flow cap; w_c and w_f at the 0.1 mm bound |
+
+The cap is active and the geometry does not move: both widths stay at the 0.1 mm bound. Capping the flow costs **6.1 % more lost work** (35.37 against 33.34 W). The warming term rises by 4.31 W, as X_warm ≈ B/V̇ predicts (B/V̇ = 23.4/2 = 11.7 W), the pumping term falls by 2.12 W, and the gap term hardly changes (−0.17 W). The hydraulic power falls by 62 % (1.74 to 0.66 W), the pressure drop from 32.9 to 19.9 kPa, and the device runs 2.50 K hotter (64.07 °C), still about 26 K below the limit. Against the minimum R_th design (Table 18: 37.38 W, 4.72 W hydraulic, 60.17 °C), the capped design still has 5.4 % less lost work and 86 % less hydraulic power, for a device 3.90 K hotter.
+
+For a designer: the lost-work minimum is flat enough that a flow limit set by the rest of the loop (pump, CDU, number of cold plates on one manifold) can be met at a small thermodynamic cost, as long as the geometry is the fine 0.1 mm one. The geometry recommendation does not change.
+
+#### 10.5.6 Summary of the robustness checks
+
+**Table 23.** The Study 2 comparison under each changed assumption (minimum lost-work design against minimum R_th design, same constraints). Sources: `phase1_plenum_K.csv`, `phase1_pump_cv.csv`, `phase1_fd_vs_validated.csv`.
 
 | Variant | Lost-work design: w_c / w_f (mm), V̇ (L/min) | Min R_th flow (L/min) | Pumping-power saving | Lost-work saving | T_dev penalty (K) |
 |---|---|---|---|---|---|
@@ -1015,11 +1044,115 @@ For a designer: the correlation choice matters for predicting T_dev to within ab
 | Pump outside CV-L | 0.1 / 0.1, 3.98 | 5.66 | 40.6 % | 4.7 % | +0.53 |
 | Fully developed model | 0.1 / 0.1, 3.10 | 5.68 | 63.8 % | 11.2 % | +1.56 |
 
-In every variant the lost-work design has the same geometry, uses less pumping power and less lost work than the minimum R_th design, and runs the device 0.5 to 1.6 K hotter. The size of the pumping saving depends mostly on where the pump is counted (41 % or 63 %). The plenum losses and the correlation choice move it by only a few points. Together with section 10.5.1, the 0.1 mm bound costs at most about 6 % of lost work against a 0.05 mm process.
+In every variant the lost-work design has the same geometry, uses less pumping power and less lost work than the minimum R_th design, and runs the device 0.5 to 1.6 K hotter. The size of the pumping saving depends mostly on where the pump is counted (41 % or 63 %). The plenum losses and the correlation choice move it by only a few points. Together with section 10.5.1, the 0.1 mm bound costs at most about 6 % of lost work against a 0.05 mm process, and section 10.5.5 shows that holding the flow to 2 L/min costs 6.1 % with the same geometry.
 
 ## 11. Code structure
 
-*(Section 11, abstract, appendices: to be written.)*
+All results in this report come from one small Python package, `coldplate/`, and a few scripts that run the studies, the validation and the figures. Figure 5 (section 5.6) shows how the modules connect and Figure 6 how one case is solved. The code follows three rules that we set at the start:
+
+- **SI units inside the package** (m, kg, s, K, Pa, W). L/min, °C, mm and µm appear only at the edges (CSV columns, plots, `Result.summary()`), and the name says so (`V_lpm`, `T_dev_C`, `w_c_mm`). Temperatures passed to CoolProp and to the entropy terms are always in kelvin.
+- **The benchmark is kept apart from the design case.** The 1 kW case lives in `coldplate/config.py`; the Qu and Mudawar inputs live only in `validation/data/*.csv` and are read by `coldplate/benchmark.py`.
+- **Every correlation cites its source** in its docstring and in `docs/equation_sheet.md`, with its validity range.
+
+The sessions of 2026-11-08 (validation, Studies 1–4, first test runs) used Python 3.13 on Linux with CoolProp 8.0.0, NumPy 2.5.3 and SciPy 1.18.1. The Phase 1 checks and the figures were run on Windows, where the environment now has Python 3.12.10, CoolProp 8.0.0, NumPy 2.5.4, SciPy 1.18.1 and Matplotlib 3.11.2.
+
+### 11.1 Modules
+
+Table 24 lists what each module does and what goes in and out of it.
+
+**Table 24.** Modules of the `coldplate/` package.
+
+| Module | Job | Inputs | Outputs |
+|---|---|---|---|
+| `config.py` | Holds the 1 kW case as dataclasses (`Geometry`, `Operating`, `Materials`, `Limits`, `Losses`, `DeadState`, `Models`) bundled in one `Case`; the defaults are Table 2 and the selected models. `lpm()` and `to_lpm()` convert flow at the edges. | – | a `Case` |
+| `properties.py` | CoolProp wrapper. | T (K), P (Pa), fluid | ρ, μ, c_p, k, Pr, h, s; T(h, P) |
+| `geometry.py` | `derive()`: channel count, D_h, aspect ratio and areas (Eq. 1). N is a whole number, or fractional for the optimizer, or fixed (21 for the benchmark). | `Geometry` | `DerivedGeometry` |
+| `correlations.py` | Nusselt models `fd_H1`, `fd_H1_3`, `LG`, `LG_3`, `MY`, `MY_3` through `local_nusselt()` (Eqs. 8–11); friction models `fd`, `MY`, `hagenbach` through `apparent_fRe()` (Eqs. 14, 15); entry lengths. | x, Re, Pr, w_c, H, L | Nu_x(x), f_app Re, entry lengths |
+| `hydraulic.py` | `pressure_drop()`: velocity, Re, friction and plenum losses, Ẇ_hyd and Ẇ_elec (Eqs. 2, 13–16). | geometry, properties at the mean state, ṁ, `Losses`, friction model, wall-corrected viscosity from `thermal.py` | `HydraulicResult` |
+| `thermal.py` | `solve_thermal()`: the network of Figure 3 station by station, with local h(x), fin efficiency, axial conduction in the base and the wall-viscosity passes (Eqs. 3–7, 12). `temperature_below_channels()` gives the benchmark thermocouple temperatures. | geometry, properties, Q, ṁ, inlet state, P_in and P_out, Re, model choices | `ThermalResult`: T_f(x), T_cf(x), T_b(x), T_out, T̄_f, T̄_s, T_dev, length-mean Nu and h, resistances, friction viscosity |
+| `second_law.py` | `entropy_generation()`: CV-C (exact boundary integral and mean-temperature form), CV-L and its three terms, CV-P, X_lost and the outlet exergy; `flow_exergy()` (Eqs. 17–22). | `ThermalResult`, `HydraulicResult`, Q, ṁ, inlet and outlet states, dead state, pump placement | `SecondLawResult` |
+| `model.py` | `evaluate(case)`: the coupled solution of Figure 6, then the second-law terms, entry lengths and constraint margins. | a `Case`; options for the models, the number of stations, the tolerance and the channel count | `Result`: all sub-results, `R_th`, `margins`, `feasible`, `summary()` in report units |
+| `optimize.py` | The studies: `flow_sweep()` and `optimum_flow()` (bounded scalar search plus the Eq. 21 check), `grid_sweep()`, `optimize_design()` (SLSQP with fractional N, then the whole-channel flow polish, section 6.7), `compare_designs()`, `inlet_temperature_sweep()`. Objectives: lost work, R_th, Ẇ_hyd. | a `Case`, grids and bounds | `FlowOptimum`, `DesignOptimum` |
+| `benchmark.py` | Builds the Qu and Mudawar case from `validation/data/*.csv` only (assumptions B1–B5). `flow_from_reynolds()`, `predict()` (TC1–TC4, ΔP, water temperature rise), `compare()` (point errors and MAPE). | data CSVs, heat flux, Re, model choices | `Prediction`; errors and MAPE |
+
+**How they connect.** A design is one `Case`. `model.evaluate()` derives the geometry once, then iterates: properties at the mean water state → `hydraulic.pressure_drop()` → `thermal.solve_thermal()`, which returns T_out and the wall-corrected friction viscosity for the next pressure-drop pass, until T_out and ΔP stop changing (Figure 6). It then calls `second_law.entropy_generation()` and checks the limits. Everything above `model.py` calls only `evaluate()`: `optimize.py` evaluates copies of the case with new widths, flow or inlet temperature (`with_design()`), and `benchmark.py` evaluates its own case with 21 channels, R_TIM = 0, no limits and the experiment's heat input and flow. No study or validation script repeats any physics.
+
+**Scripts.** Table 25 lists the scripts that write the results and figures. Appendix C maps each table and figure of this report to its command.
+
+**Table 25.** Scripts.
+
+| Script | What it does | Writes |
+|---|---|---|
+| `analysis/run_studies.py` | Studies 1–5 (`--only N` runs one study, `--quick` uses coarser grids) | `analysis/results/study1_…` to `study5_….csv`; also two early draft plots (`figures/study1_flow_sweep.png`, `figures/study3_inlet_temperature.png`) that this report does not use |
+| `analysis/run_phase1_checks.py` | Phase 1 checks, parts `d7 d5 fd num digit cap` | `analysis/results/phase1_*.csv` |
+| `analysis/make_report_figures.py` | Figures 3–9 and 12–17 from the CSVs, the data files and the code; reruns no study | `figures/fig_*.png` |
+| `analysis/make_geometry_figures.py` | Figures 1 and 2 | `figures/geometry_*.png` |
+| `validation/run_validation.py` | Model matrix of Tables 6 and 7; `--plots` parity plot (Figure 11); `--vs-re` data and model against Re (Figure 10) | `validation/results/*.csv`, `figures/validation_*.png` |
+| `validation/digitize/` | Digitizing pipeline of section 7.5 (`qm_figures.py`, then `fill_csv.py`) | `validation/data/raw/`, `validation/data/qu_mudawar_*.csv` |
+
+### 11.2 How to run
+
+Set-up, from the repository folder:
+
+```
+python -m venv .venv
+.\.venv\Scripts\activate          (Linux / macOS: source .venv/bin/activate)
+pip install -r requirements.txt
+pip install -e .
+```
+
+Then:
+
+```
+python -m pytest -q                              # tests
+python analysis/run_studies.py                   # Studies 1-5
+python analysis/run_phase1_checks.py             # Phase 1 checks (all parts)
+python validation/run_validation.py              # validation matrix
+python analysis/make_report_figures.py           # Figures 3-9, 12-17
+python analysis/make_geometry_figures.py         # Figures 1-2
+```
+
+On Windows we set `$env:OPENBLAS_NUM_THREADS=1` in PowerShell first. NumPy otherwise threads the many small dense solves of the thermal network, and the test suite took 47 min instead of 24 min. On Linux the suite took about 4 min.
+
+### 11.3 Tests
+
+The test suite has 51 tests in eight files (`tests/`). The last full run on Windows (2026-11-16) gave **50 passed, 1 skipped**: the digitizer test needs Node.js, which is not installed on that machine, so it has only been run on Linux (51 passed there on 2026-11-08). Table 26 lists what the tests check.
+
+**Table 26.** Test coverage.
+
+| File (tests) | What is checked |
+|---|---|
+| `test_properties.py` (3) | water ρ, c_p, μ, k at 25 °C and ρ, μ at 60 °C against reference values; T(h, P) round trip |
+| `test_geometry_correlations.py` (4) | channel count and D_h; parallel-plate limits of Nu and fRe; square duct; a plate too narrow for one channel raises an error |
+| `test_correlations_developing.py` (19) | fully developed limits; Lee–Garimella entry-length definition (7 aspect ratios), agreement with the Wibulswas table (aspect ratios 3 and 4) and approach to the fully developed value; Muzychka–Yovanovich circular-tube limit, square-duct friction, thermal part against Wibulswas, combined above thermal-only; apparent friction against Shah and London (3 aspect ratios); all friction models tend to the fully developed value; model registry and error handling |
+| `test_hydraulic_thermal.py` (7) | Poiseuille parallel-plate limit; friction ΔP ∝ V̇ and minor losses ∝ V̇²; a pump efficiency outside (0, 1] is rejected; fin-efficiency limits; energy balance and the temperature order T_in < T̄_f < T_out < T̄_s < T_dev; doubling the flow lowers T_dev but more than quadruples Ẇ_hyd; T_dev stays above the floor T_in + Q(R_conv + R_base + R_TIM) |
+| `test_second_law.py` (7) | Ṡ_gen > 0 for CV-C, CV-L, CV-P and each CV-L term over 0.5–8 L/min; the three CV-L terms sum to Eq. (19) to 10⁻¹²; mean-temperature CV-C and its split within 1 % of the exact value (A1); flow exergy zero at the dead state; interior lost-work optimum, Eq. (21) within 20 % of it and X_warm/X_pump between 1.5 and 3.5; with fully developed flow Ṡ_gen,C only rises with flow; with developing flow it stays positive |
+| `test_benchmark_optimize.py` (5) | benchmark geometry loads from the CSVs; the Re definition reproduces the paper's stated flow rates; prediction trends (ΔP above friction alone, TC1 < TC2 < TC3 < TC4, more flow gives more ΔP and less water warming); `compare()` runs; the minimum R_th optimization returns a feasible design better than its start |
+| `test_validation_qm.py` (5) | regression guard on the validation: data present (≥ 35 ΔP and ≥ 150 thermocouple points); selected model thermocouple MAPE < 10 %, water-rise MAPE < 5 %, ΔP MAPE < 15 %; fully developed model thermocouple MAPE > 30 % |
+| `test_digitizer.py` (1) | the digitizing pipeline recovers the markers of a synthetic plot within 0.3 % of the axis range (needs Node.js) |
+
+What the tests do not cover: the study results themselves (no test compares a study CSV with stored numbers), the convergence of the optimizer beyond feasibility, the wall-viscosity loop (a fixed 4 passes, section 11.4), and the plotting scripts, which we checked by eye.
+
+### 11.4 Numerical checks
+
+In Phase 1 we checked that the numbers do not depend on the numerical settings (`analysis/results/phase1_numerical_checks.csv`). Table 27 gives the grid check: the same case solved with 21, 41 and 81 stations along the channel.
+
+**Table 27.** Grid independence.
+
+| Quantity | n_x = 21 | 41 | 81 | change 41 → 81 |
+|---|---|---|---|---|
+| 1 kW reference design, 2 L/min: T_dev (°C) | 69.052 | 69.017 | 69.008 | −0.010 K |
+| same: ΔP (kPa) | 5.3224 | 5.3220 | 5.3218 | −0.003 % |
+| same: X_lost (W) | 48.642 | 48.660 | 48.668 | +0.016 % |
+| Qu and Mudawar, 100 W/cm², Re 1672: TC1 (°C) | 33.716 | 33.762 | 33.783 | +0.022 K |
+| same: TC4 (°C) | 47.450 | 47.465 | 47.464 | −0.0003 K |
+| same: friction ΔP (kPa) | 72.773 | 72.753 | 72.744 | −0.011 % |
+
+- **Grid.** The defaults are 41 stations for the 1 kW case, 61 for the benchmark (between the 41 and 81 of Table 27) and 21 inside the optimizer, whose final designs are re-evaluated with 41. All are converged to about 0.01–0.05 K and 0.05 % or better, far below the 4.6 % validation error.
+- **Energy balance.** For the reference design ṁ(h_out − h_in)/Q − 1 = 3 × 10⁻¹¹, and the convective heat integrated along the channel matches Q to 2 × 10⁻¹³ on all three grids. The solver rescales the convective heat so that the water receives exactly Q, so this closure holds by construction. It confirms the implementation; it is not an independent check.
+- **Property iteration.** Converged in 3 iterations at the default tolerance (10⁻⁶ K). With 10⁻¹⁰ K (9 iterations) T_dev is unchanged to 8 decimals, ΔP changes by 2 × 10⁻⁸ kPa and X_lost by about 10⁻⁹ W.
+- **Optimizer.** The integer-channel issue of section 6.7 (a width returned as 0.1000000000028 mm drops N from 150 to 149 and changes X_lost by 0.3 %) is handled in the Phase 1 runs by snapping the widths to 1 nm.
+- **Not checked.** The wall-viscosity loop in `thermal.py` runs a fixed 4 passes with no convergence test; checking it needs a code change.
 
 ## 12. Conclusions
 
@@ -1028,7 +1161,7 @@ The central question of the proposal (section 2) was: how much coolant flow is t
 1. **How much flow.** For 0.2 mm channels and fins, the lost work is lowest at 5.13 L/min (43.05 W), about 5 L/min per kW. The simple estimate V̇* = (B/2C)^(1/3) gives 4.77 L/min. The full model's optimum is higher because, with developing flow, extra flow also lowers the base-to-coolant loss (section 9.3). The minimum is flat: anything from 3 to 7.5 L/min is within 5 %. Above the optimum, friction wins: going from 5 to 10 L/min multiplies the hydraulic power by 5.0 and lowers the device temperature by only 1.65 K. The reference flow of 2 L/min, at the upper end of the 1 to 2 L/min per kW that our proposal quotes as typical practice, loses 13 % more than the optimum at this geometry.
 2. **What limits the benefit of flow.** Heat transfer from the base to the coolant is the largest irreversibility: 83 % of the lost work at the flow optimum and two thirds in the optimized design. Flow changes it by only a few watts over a 20-fold range, so more flow cannot fix a poor geometry.
 3. **Geometry matters more than flow.** Optimizing the channel width, fin thickness and flow together gives 0.1 mm channels and fins at 3.17 L/min, with X_lost = 33.34 W. That is 22.5 % below the 0.2 mm geometry at its own best flow, while optimizing the flow alone gave 11.5 %. Narrower channels need less flow. The optimum sits on the 0.1 mm manufacturing bound, and a 0.05 mm process would gain at most about 6 %.
-4. **Second-law design against minimum thermal resistance.** The lost-work design uses 63 % less pumping power (1.74 against 4.72 W hydraulic) and has 10.8 % less lost work, for a device 1.40 K hotter (61.57 against 60.17 °C), with 28 K of margin left to the 90 °C limit. The minimum thermal resistance design is set by the 50 kPa pressure-drop limit; the lost-work design is set by thermodynamics, with its pressure drop (32.9 kPa) well inside the limit. The 63 % assumes the pump inside the control volume with η_pump = 0.5; with the pump outside it is 41 %.
+4. **Second-law design against minimum thermal resistance.** The lost-work design uses 63 % less pumping power (1.74 against 4.72 W hydraulic) and has 10.8 % less lost work, for a device 1.40 K hotter (61.57 against 60.17 °C), with 28 K of margin left to the 90 °C limit. The minimum thermal resistance design is set by the 50 kPa pressure-drop limit; the lost-work design is set by thermodynamics, with its pressure drop (32.9 kPa) well inside the limit. The 63 % assumes the pump inside the control volume with η_pump = 0.5; with the pump outside it is 41 %. Its 3.17 L/min is above the 1 to 2 L/min per kW of current practice, because the objective charges the warming of the coolant as lost work and leaves out rack-level limits (section 10.2); capping it at 2 L/min costs only 6.1 % more lost work.
 5. **Device temperature limit.** At a 30 °C inlet the limit is not active for any of the lost-work designs. The TIM takes 20 K of the device temperature rise. R_TIM moves T_dev by ±10 K but does not move the lost-work optimum, because the TIM lies outside the cold plate's control volume. The device limit decides feasibility, not the optimum.
 6. **Inlet temperature.** From 20 to 55 °C the optimum flow barely changes (4.93 to 5.50 L/min), the lost work falls from 46.7 to 35.8 W, and the exergy carried by the outlet water rises to 94 W, which favours warm-water cooling and heat reuse. At the reference geometry the device limit takes over between 55 and 57.5 °C. Above that, the 90 °C limit cannot be met with laminar flow (at 57.5 °C it would need Re 3834), and from 60 °C it cannot be met at any flow.
 7. **The control volume is part of the answer.** The cold plate alone (CV-C) has no useful optimum flow: its entropy generation is flat within 0.5 % from 0.5 to 4.5 L/min. The coolant-warming loss only appears when the return of the water to its inlet temperature is included (CV-L). The design conclusions hold for plenum loss coefficients of 0 to 3 (saving 61–66 %) and with the proposal's fully developed model (saving 64 %), although the two models differ strongly on the benchmark.
@@ -1043,6 +1176,7 @@ The central question of the proposal (section 2) was: how much coolant flow is t
 4. **Uniform heat flux (A2).** Real processors have hot spots, so the real hottest point would be hotter than our T_dev, and the base-to-coolant loss would be distributed differently along the channel. Base conduction is one-dimensional, without lateral spreading (A3).
 5. **Equal flow per channel (A5).** We do not model the manifold. Maldistribution would leave some channels with less flow and higher wall temperatures, and the plenum losses would depend on the manifold shape.
 6. **Other simplifications and open items.** CV-L idealizes the coolant distribution unit as a reservoir at T_in; it is not a model of the whole loop. Study 3 was run only at the reference geometry. CV-P is not written to the results CSVs (its size in section 9.1 is a hand estimate checked against one model evaluation). The open items of the validation also apply here: one benchmark, viscosity exponents not yet checked in the original source, and the hand check of the digitized data still pending (section 8.6).
+7. **The optimum flow is for one cold plate whose heat is thrown away.** Our design flow, about 3.2 L/min per kW, is above the 1 to 2 L/min per kW of current practice. Two things in the problem set-up push it there (section 10.2). The objective counts the warming of the coolant as lost work, because the warm water is assumed to be rejected at T_in; with heat reuse the warming loss would shrink and the optimum would move to lower flow (an argument from Eq. 26, not a run). And rack-level limits on the pump and the coolant distribution unit are not modelled. The result should therefore be read as the thermodynamic optimum of one cold plate. It still uses 44 % less flow than the minimum thermal resistance design (5.66 L/min), and capping it at 2 L/min costs only 6.1 % more lost work (section 10.5.5).
 
 ### 13.2 Future work
 
@@ -1050,37 +1184,9 @@ The central question of the proposal (section 2) was: how much coolant flow is t
 2. **A tall-channel benchmark.** Repeat the validation against an experiment with H/w_c of 10 or more, close to skived-fin cold plates, to remove the main extrapolation.
 3. **Two-phase cooling.** In flow boiling the coolant absorbs heat at nearly its saturation temperature, so we expect the coolant-warming loss, which sets the single-phase optimum, to be replaced by losses tied to the saturation temperature and the two-phase pressure drop. The same CV-L framework could compare a two-phase cold plate (for example the type modelled by Wang et al. [16]) with the single-phase optimum.
 4. **A manifold and flow-distribution model.** Model the inlet and outlet plenums and the flow split between channels. This would replace the equal-flow assumption (A5) and the assumed K values, and would give plenum losses for the benchmark as well (D5).
-5. **Smaller extensions with the existing code.** Run Study 3 on the 0.1 mm lost-work design; write CV-P to the results; repeat Study 2 for a range of heat loads to see how the optimum flow scales with Q.
+5. **Smaller extensions with the existing code.** Run Study 3 on the 0.1 mm lost-work design; write CV-P to the results; repeat Study 2 for a range of heat loads to see how the optimum flow scales with Q; add a heat-reuse variant of CV-L, in which the outlet exergy is a product, to find how far the optimum flow moves down (section 10.2).
 
-## Appendices
-
-*(Section 11, abstract, appendices: to be written.)*
-
----
-
-## Figures still to be made
-
-These figures are embedded above by their planned file names and do not exist yet.
-
-| Figure | Planned file | Content | Used in |
-|---|---|---|---|
-| 3 | `figures/fig_B_network.png` | thermal network along the channel | section 5.2 |
-| 4 | `figures/fig_C_control_volumes.png` | control volumes CV-P, CV-C, CV-L | section 5.5 |
-| 5 | `figures/fig_D_code_structure.png` | code structure | section 5.6 |
-| 6 | `figures/fig_E_solver_flowchart.png` | solver flowchart | section 5.6 |
-| 7 | `figures/fig_I_local_Nu.png` | local Nusselt number along the channel, by model | section 6.1 |
-| 8 | `figures/fig_F_benchmark_setup.png` | Qu and Mudawar test section as modelled | section 7.1 |
-| 9 | `figures/fig_G_data_extraction.png` | data extraction pipeline | section 7.5 |
-| 12 | `figures/fig_H_model_mape.png` | MAPE by model combination | section 8.3 |
-| 13 | `figures/fig_J1_flow_sweep.png` | Study 1: lost work and its three terms against flow, numerical optimum and Eq. (21) estimate marked (draft: `figures/study1_flow_sweep.png`) | sections 9.2, 10.1 |
-| 14 | `figures/fig_J2_designs.png` | Study 2: lost-work terms, hydraulic power and T_dev for the four designs | section 10.2 |
-| 15 | `figures/fig_J3_inlet_temperature.png` | Study 3: optimum flow, T_dev with the 90 °C limit, lost work and outlet exergy against T_in (draft: `figures/study3_inlet_temperature.png`) | section 10.3 |
-| 16 | `figures/fig_J4_sensitivity.png` | Study 4: change of optimum flow, lost work and T_dev for each input | section 10.4 |
-| 17 | `figures/fig_J5_below_limit.png` | Study 5: lost-work terms and optimum flow against w_c = w_f, active limit marked | section 10.5.1 |
-
-Existing figures used: Figure 1 `figures/geometry_3d_design.png`, Figure 2 `figures/geometry_design_vs_qm.png`, Figure 10 `figures/validation_vs_Re.png`, Figure 11 `figures/validation_parity.png` (its thermocouple MAPE title needs checking, section 8.2).
-
-## References
+## 14. References
 
 Only sources already cited in the project documents are listed. Entries marked *incomplete* need their full bibliographic details added from the original before submission.
 
@@ -1092,8 +1198,8 @@ Only sources already cited in the project documents are listed. Entries marked *
 6. R. K. Shah and A. L. London, Laminar Flow Forced Convection in Ducts. New York: Academic Press, 1978. (Page and equation numbers of the fits not yet verified.)
 7. T. L. Bergman, A. S. Lavine, F. P. Incropera and D. P. DeWitt, Fundamentals of Heat and Mass Transfer, 7th ed. Wiley, 2011.
 8. I. H. Bell et al., "Pure and pseudo-pure fluid thermophysical property evaluation and the open-source thermophysical property library CoolProp," Ind. Eng. Chem. Res., vol. 53, pp. 2498–2508, 2014.
-9. P.-S. Lee and S. V. Garimella, "Thermally developing flow and heat transfer in rectangular microchannels of different aspect ratios," Int. J. Heat Mass Transfer, vol. 49, p. 3060, 2006. Eqs. (11)–(13), (15), (16). *(Title as in the code comment; check against the paper.)*
-10. Y. S. Muzychka and M. M. Yovanovich, ASME J. Heat Transfer, vol. 126, p. 54, 2004. Eqs. (21), (22), (42)–(47), Table 1. *Incomplete: title.*
+9. P.-S. Lee and S. V. Garimella, "Thermally developing flow and heat transfer in rectangular microchannels of different aspect ratios," Int. J. Heat Mass Transfer, vol. 49, pp. 3060–3067, 2006. Used: Eqs. (11)–(13), (15), (16).
+10. Y. S. Muzychka and M. M. Yovanovich, "Laminar forced convection heat transfer in the combined entry region of non-circular ducts," ASME J. Heat Transfer, vol. 126, pp. 54–61, 2004. Used: Eqs. (21), (22), (42)–(47), Table 1.
 11. P.-S. Lee, S. V. Garimella and D. Liu, 2005, Table 2 (Wibulswas Nu_x values). *Incomplete: title and journal.*
 12. Duan and Ma, 2020, Table 3 (Shah and London apparent friction values) and Eq. (33) (Hagenbach factor, attributed to Steinke and Kandlikar). *Incomplete: full citation.*
 13. W. M. Kays and M. E. Crawford, Convective Heat and Mass Transfer, 3rd ed., 1993. Exponents quoted through the `ht` Python library (`wall_factor`); original table not yet checked.
@@ -1101,3 +1207,130 @@ Only sources already cited in the project documents are listed. Entries marked *
 15. T. Shedd, "The Skinny on Skived Cold Plates," https://timshedd26.substack.com/p/the-skinny-on-skived-cold-plates
 16. Q. Wang et al. (Accelsius), "Thermohydraulic Modeling of Microchannel Cold Plates for Two-Phase Data Center Cooling," IEEE ITherm, https://accelsius.com/wp-content/uploads/Thermodynamic-Modeling-of-Microchannel-Cold-Plates-Q.-Wang.pdf
 17. FiberMall blog, NVIDIA GB200 liquid cooling plate, https://www.fibermall.com/blog/nvidia-gb200-liquid-cooling-plate.htm (vendor blog; claims without a primary source).
+
+## Appendix A. Assumptions
+
+Table 4 (section 5.7) lists the modelling assumptions by their IDs in `docs/equation_sheet.md`. This appendix collects every assumption behind the results in one place, together with what we did to test it and how much it matters. Table A1 covers the model, Table A2 the assumed inputs and limits of the 1 kW case, and Table A3 the benchmark.
+
+**Table A1.** Modelling assumptions.
+
+| ID | Assumption | Basis | Tested how, and effect | Section |
+|---|---|---|---|---|
+| – | Steady, single-phase, laminar flow | proposal; the correlations are laminar | enforced by Re ≤ 2000; the limit is reached only above about 11.4 L/min at the reference geometry, and when holding 90 °C at a 57.5 °C inlet | 5, 10.1, 10.3 |
+| A1 | Heat enters CV-C at one mean temperature | proposal's Ṡ_gen formula | not used: the code uses the exact integral; the mean form changes Ṡ_gen,C by 0.15 % (reference design) | 5.5, 9.1 |
+| A2 | Uniform heat flux, 1000 W over 30 × 30 mm | proposal; keeps the model one-dimensional | not tested; real hot spots would raise T_dev | 13.1 |
+| A3 | 1D conduction through the base, no lateral spreading | footprint equals heated area | not tested for the 1 kW case | 13.1 |
+| A4 | Hottest device point above the outlet | proposal | replaced: T_dev from the maximum of T_b(x), Eq. (7) | 5.2 |
+| A5 | Equal flow in every channel | proposal | not tested; no manifold model | 13.1 |
+| A6 | Adiabatic lid and fin tip; three walls heated | cold-plate lid; benchmark polycarbonate cover | three-sided correction, Eq. (9): 2.0–4.6 MAPE points better on the benchmark | 6.2 |
+| A7 | Fully developed flow | proposal | failed: 49.1 % thermocouple MAPE; replaced by Eqs. (8) and (14) | 6.1 |
+| A10 | No wall-viscosity correction | proposal | replaced by Eq. (12); exponents 0.14 and 0.58 from the `ht` library, original table not checked | 6.4, 8.6 |
+| A11 | Viscous heating left out of T_out | under 0.01 K | accepted; ΔP still enters the entropy balance through s(T, P) | 5.4 |
+| A14 | No axial conduction in the base | proposal | replaced by Eq. (6): 1.8–2.6 MAPE points better for the developing-flow models | 6.3 |
+| – | Three-sided ratio of Eq. (9) applied to `MY` | our extension of Eq. (15) of [9] | `LG_3`, which is fully sourced, gives the same accuracy (4.5 % against 4.6 %) | 6.1 |
+| – | CV-L: the cooler is a reservoir at T_in, and the outlet heat is not reused | proposal | not varied; it creates the warming loss and pushes the optimum flow up | 9.1, 10.2 |
+| D7 | Pump inside CV-L, Ẇ_pump = Ẇ_elec | our choice | pump outside: same geometry, 26 % more flow, pumping-power saving 41 % instead of 63 % | 6.6, 10.5.2 |
+| – | Fractional channel count during SLSQP; widths snapped to 1 nm in the Phase 1 runs | our choice | whole-channel polish of every reported design; the snapping avoids a 0.3 % error from N = 149 | 6.7 |
+
+**Table A2.** Assumed inputs and limits of the 1 kW case.
+
+| Quantity | Value | Basis | Sensitivity and effect | Section |
+|---|---|---|---|---|
+| Heat load and footprint | 1000 W on 30 × 30 mm | proposal: power class of current AI accelerators | fixed; scaling with Q not studied (future work) | 4.1 |
+| Plate material | copper, k_s = 390 W/m·K | proposal | fixed | 4.1 |
+| H, t_b, L = W | 3 mm, 1 mm, 30 mm | proposal; inside the published ranges of Table 3 | fixed, so that the optimization has three variables | 4.1, 4.2 |
+| R_TIM (A12) | 0.02 K/W | assumed, no primary source (D6) | 0.01–0.03 K/W moves T_dev by ±10 K; the optimum flow and the lost work do not move | 10.4 |
+| T_dev,max (A12) | 90 °C | assumed, no primary source (D6) | not active for the lost-work designs at a 30 °C inlet; takes over between 55 and 57.5 °C inlet at the reference geometry | 10.3 |
+| ΔP budget | 50 kPa | assumed in the proposal | not active for the lost-work design (32.9 kPa); sets the minimum R_th design | 10.2 |
+| Re limit | 2000 | laminar correlations | see the first row of Table A1 | 10.1 |
+| Width bounds | w_c 0.1–1.0 mm, w_f 0.1–0.5 mm | proposal; Shedd [15] | the lost-work optimum sits on the 0.1 mm bound; a 0.05 mm bound gains at most about 6 % | 10.5.1 |
+| Plenum losses (A8) | K_c = 0.5, K_e = 1.0 | assumed, no source (D5) | K_c + K_e = 0–3: optimum flow at the reference geometry 5.63 to 4.80 L/min; lost-work design ±1.5 % in flow and ±0.3 % in X_lost; pumping-power saving 61–66 % | 10.4, 10.5.3 |
+| Pump efficiency (A9) | 0.5 | assumed | 0.3–0.7: optimum flow 4.27 to 5.80 L/min, lost work +3.5 % to −2.2 % | 10.4 |
+| Dead state (A13) | T0 = 25 °C, P0 = 101.325 kPa | T0 from the proposal; P0 standard atmosphere | T0 = 10–35 °C scales the lost work with T0; the optimum flow does not move | 10.4 |
+| Inlet temperature | 30 °C | ASHRAE W32 class (proposal) | Study 3: 20–60 °C | 10.3 |
+| Inlet pressure | 2 bar | assumed | small effect on properties; P_out must stay above 10 kPa | 5.4 |
+
+**Table A3.** Benchmark assumptions (`coldplate/benchmark.py`, `validation/README.md`).
+
+| ID | Assumption | Basis | Tested how, and effect | Section |
+|---|---|---|---|---|
+| B1 | Re uses inlet-temperature properties | paper's Re defined with inlet parameters | reproduces the paper's stated flow rates within 0.7 % | 7.2 |
+| B2 | Q = q″_eff × A_t enters uniformly; heat loss neglected | paper: heat loss < 1 % | at 200 W/cm² the measured water rise is 2.5–5.7 % below the energy balance, inside the 4 % flow uncertainty plus heat loss | 7.6 |
+| B3 | Plenum losses either left out (selected) or K_c = K_e = 1 at channel velocity | paper: coefficients "close to unity", no values or plenum dimensions | ΔP MAPE 9.7 % without, 26.7 % with; unresolved (D5) | 6.5, 8.6 |
+| B4 | Inlet pressure 2 bar | not reported in the paper | small effect on properties | 7.2 |
+| B5 | Thermocouple temperature = channel-floor temperature + q″d/k_s, d = 2.462 mm | 1D conduction; d from Table 1 of the paper | TC1 at 200 W/cm² under-predicted by up to about 8 % at low Re; 3D conduction near the inlet is a possible cause, not tested | 8.6 |
+| – | A marker's value is its area centroid | digitizing (section 7.5) | for triangles the plotting anchor could be the bounding-box centre, about 0.4 K higher; the reading uncertainty moves the MAPE by about 0.1 point | 7.6, 8.4 |
+
+## Appendix B. Checklist against the proposal
+
+Table B1 takes each promise of the submitted proposal (`docs/proposal_submitted.md`) and gives where this report delivers it, or what changed and why.
+
+**Table B1.** Proposal promises and where they are delivered.
+
+| Proposal promise | Where in this report | Status |
+|---|---|---|
+| Reduced-order Python model of a water-cooled copper microchannel cold plate | sections 5, 11 | delivered |
+| Objective 1: device temperature, pressure drop and pump power for any w_c, w_f and flow | sections 5, 11 (`model.evaluate()`) | delivered |
+| Objective 2 and validation plan: run at the Qu and Mudawar conditions (21 channels, 231 × 713 µm), compare measured ΔP and temperatures, errors within about 10–15 % | sections 7, 8; Table 14 | delivered: 4.6 % thermocouple and 9.7 % ΔP MAPE, no tuning; the ΔP result leaves out plenum losses, which is unresolved (section 8.6) |
+| Fallback: switch to a developing-flow Nusselt correlation if the error is too large | sections 3, 6.1 | used: the fully developed model gave 49 %, so we switched to developing flow and also added three-sided heating, axial conduction, a wall-viscosity correction and apparent friction (Table 1) |
+| 1D resistance network in series: TIM, base, fin-array convection, coolant rise | section 5.2, Figure 3 | changed: the same chain, solved station by station along the channel, because h now depends on x |
+| Fully developed Nu and fRe (Shah and London), standard fin efficiency, CoolProp properties | sections 5.2–5.4, 6 | changed for Nu and friction (validation); fin efficiency and CoolProp as proposed |
+| Hottest device point above the outlet | section 5.2, Eq. (7) | changed: maximum of T_b(x) along the channel (A4) |
+| Objective 3: entropy generation split into its sources and expressed as lost work | sections 5.5, 9.1, 9.2 | delivered: three control volumes; CV-L split into warming, gap and pumping terms |
+| Control volume: cold plate plus the return of the coolant to T_in; Ṡ_gen = Q(1/T_in − 1/T_s) + Ẇ_pump/T_in, X_lost = T0 Ṡ_gen | sections 5.5, 9.1; Eqs. (19), (25) | delivered; the placement of the pump in the control volume is made explicit and tested (section 6.6) |
+| Optimum flow ≈ (B/2C)^(1/3); check the numerical optimum against it | section 9.3 | delivered: 4.77 against 5.13 L/min; the difference is explained by Eq. (28) |
+| First estimate: optimum flow of about 4 to 5 L/min for 0.2 mm channels | sections 9.3, 10.1 | 5.13 L/min with the validated model (4.53 L/min with the proposal's model), just above the range because h rises with velocity in developing flow |
+| Study: flow sweep at the reference geometry (0.2 mm channels and fins) | section 10.1, Table 17, Figure 13 | delivered, 0.5–12 L/min |
+| Objective 4 and study: optimize w_c, w_f and flow (grid sweep, then SLSQP) to minimize lost work with T_dev ≤ 90 °C, ΔP ≤ 50 kPa, laminar flow; compare with the minimum thermal resistance design | sections 6.7, 10.2; Table 18, Figure 14 | delivered; whole-channel polish added; minimum hydraulic power design added as an extra reference |
+| Objective 5 and study: inlet temperature 20 to 50 °C; when the temperature limit takes over; exergy of the outlet water | section 10.3, Table 19, Figure 15 | delivered at the reference geometry; range extended to 60 °C because the limit takes over between 55 and 57.5 °C; not run for the 0.1 mm design |
+| Sensitivity of the TIM resistance and the pump efficiency | section 10.4, Table 20, Figure 16 | delivered; T0 and the plenum loss coefficient added |
+| Inputs: 1000 W on 30 × 30 mm, copper 390 W/m·K, 3 mm fins, 1 mm base, R_TIM 0.02 K/W, water at 30 °C, T0 = 25 °C, w_c 0.1–1.0 mm, w_f 0.1–0.5 mm, 0.5–12 L/min | Table 2 | as proposed; extra study below the 0.1 mm bound (section 10.5.1) |
+| Second-law check: entropy generation positive everywhere | section 9.5 | delivered (all CSV values, and a test) |
+| Second-law check: warming loss about twice the pumping loss at the optimum | sections 9.3, 9.5 | 1.62 with the validated model and 2.43 with the fully developed model; both departures explained by Eq. (28) |
+| Main assumptions: steady single-phase laminar flow, uniform heat flux, equal flow in all channels | Table 4, Appendix A | kept; listed as limitations (section 13.1) |
+| Tools: Python (NumPy, SciPy, Matplotlib) with CoolProp on a laptop | section 11 | delivered |
+| Code on GitHub, updated every week | repository github.com/krishna24558/coldplate-egm | the history has commits on 23 Oct, 13 Nov, 16 Nov, 20 Nov and 22 Nov 2026; there were none between 23 Oct and 13 Nov, so the weekly updates were not kept in that period |
+| Timeline: model and tests by Nov 3, validation and second-law module by Nov 12, studies by Nov 22, report and code by Dec 3 | – | model, tests, validation, second-law module and Studies 1–4 done on 8 Nov (model and tests five days late); data recheck 13 Nov; Phase 1 checks 16 Nov; flow-cap check 22 Nov; this report for 3 Dec |
+| References of the proposal [1]–[8] | section 14 | all kept |
+
+## Appendix C. Commands to reproduce the numbers and figures
+
+All commands run from the repository folder with the virtual environment active (section 11.2). On Windows we set `$env:OPENBLAS_NUM_THREADS=1` first. Three cautions:
+
+- The scripts overwrite their output files. `validation/data/*.csv` holds the digitized data and should not be regenerated without need: the digitizer needs Node.js and `pdftoppm` (Poppler), which were available only on the Linux machine, and `fill_csv.py` rewrites the benchmark CSVs from the raw points. After any rerun, check that the status change made in the recheck (section 7.6) is still there.
+- `validation/run_validation.py` without options reruns the full model matrix. It now uses the 156 thermocouple points left after the recheck, while Tables 6 and 7 were made with 157 points, so the numbers can change slightly (4.60 → 4.61 % for the selected model).
+- `analysis/run_studies.py` also rewrites two early draft plots in `figures/` that this report does not use.
+
+**Table C1.** Where each number and figure comes from.
+
+| Report item | Command | Output |
+|---|---|---|
+| Tables 2 and 4 (inputs) | none; `coldplate/config.py` | – |
+| Table 10 (benchmark inputs) | none; `validation/data/qu_mudawar_geometry.csv`, `_conditions.csv`, `_sensors.csv` | – |
+| Flow rates from Re (section 7.2) | `python -c "from coldplate.benchmark import load_benchmark, flow_from_reynolds; bm = load_benchmark(); print([flow_from_reynolds(bm, R) * 6e7 for R in (139, 1672)])"` | printed, ml/min |
+| Table 11 (digitized points) | status column of `validation/data/qu_mudawar_dP.csv` and `qu_mudawar_thermal.csv`; produced by `python validation/digitize/qm_figures.py validation/data/raw/qu_mudawar_2002.pdf` and `python validation/digitize/fill_csv.py` (see the cautions) | `validation/data/raw/`, `validation/data/*.csv` |
+| Table 12 (recheck) | none; the recheck used separate code that is not in the repository | `validation/data/raw/recheck_log.md` |
+| Table 13 (coefficient checks) | `python -m pytest -q tests/test_correlations_developing.py tests/test_benchmark_optimize.py` | test result |
+| Tables 5–7, Table 14, Figure 12 data | `python validation/run_validation.py` | `validation/results/thermal_model_matrix.csv`, `dP_model_matrix.csv` |
+| Selected-model MAPE on the current data: 4.61 % thermocouples, 2.84 % water rise, 4.26 % pooled, 9.7 % ΔP (section 8.2) | `python -c "from coldplate.benchmark import compare; r = compare(include_minor=False); print(r['MAPE_TC'], r['MAPE_thermal'], r['MAPE_dP'])"` (`r['thermal']` holds the water-rise points) | printed |
+| Figure 10 | `python validation/run_validation.py --skip-matrix --vs-re` | `figures/validation_vs_Re.png` |
+| Figure 11 | `python validation/run_validation.py --skip-matrix --plots MY_3 1 MY 0 1` (about 5 min) | `figures/validation_parity.png` |
+| Table 15 | `python analysis/run_phase1_checks.py digit` | `analysis/results/phase1_digitizing_uncertainty.csv` |
+| Table 16 | none; z* = L/(Re Pr D_h) by hand with the Re of Study 1 and of the benchmark (`docs/design_case_justification.md`) | – |
+| Table 17, Figure 13 data, sections 9.2–9.4, 10.1 | `python analysis/run_studies.py --only 1` | `analysis/results/study1_flow_sweep.csv` |
+| Reference-geometry optimum: 5.13 L/min, 43.05 W, Eq. (21) 4.77 L/min, X_warm/X_pump 1.62; Table 8; pump rows of Table 23 | `python analysis/run_phase1_checks.py d7` | `analysis/results/phase1_pump_cv.csv` |
+| Table 18, Figure 14 data | `python analysis/run_studies.py --only 2` | `analysis/results/study2_designs.csv` |
+| Table 19, Figure 15 data | `python analysis/run_studies.py --only 3` | `analysis/results/study3_inlet_temperature.csv` |
+| Table 20, Figure 16 data | `python analysis/run_studies.py --only 4` | `analysis/results/study4_sensitivity.csv` |
+| Table 21, Figure 17 data | `python analysis/run_studies.py --only 5` | `analysis/results/study5_below_limit.csv` |
+| Section 10.5.3; K rows of Table 23 | `python analysis/run_phase1_checks.py d5` | `analysis/results/phase1_plenum_K.csv` |
+| Table 9, section 10.5.4; fully developed row of Table 23 | `python analysis/run_phase1_checks.py fd` | `analysis/results/phase1_fd_vs_validated.csv` |
+| Table 22 (flow cap) | `python analysis/run_phase1_checks.py cap` (about 2 min) | `analysis/results/phase1_flow_cap.csv` |
+| Table 27, section 11.4; friction ΔP 72.75 kPa (section 8.1) | `python analysis/run_phase1_checks.py num` | `analysis/results/phase1_numerical_checks.csv` |
+| Section 11.3 (test results) | `python -m pytest -q` | test result |
+| CV-P 55.2 W at T̄_s = 45.7 °C (section 9.1); the A1 numbers 0.006 %, 0.15 % and 0.5 % (sections 9.1, 9.5) | `python -c "from coldplate.config import Case; from coldplate.model import evaluate; r = evaluate(Case()); s = r.sl; print(298.15 * s.S_gen_P, r.th.T_s_mean - 273.15, 1000 / r.th.T_s_mean, 1000 / s.T_s_eff, s.S_gen_C, s.S_gen_C_mean, s.S_C_dT + s.S_C_dP)"` | printed |
+| B = 23.4 W·(L/min), C = 0.108 W/(L/min)², local exponents n_w = 0.99, n_p = 2.28 and ΔP exponent 1.28, dX_gap/dV̇ = −0.37 W per L/min, Eq. (28) (sections 9.2, 9.3) | by hand: B from Eq. (21) with CoolProp properties at the inlet; C = X_pump/V̇² at the optimum (`phase1_pump_cv.csv`); exponents n = ln(X(5.5)/X(5.0))/ln(5.5/5.0) from the 5.0 and 5.5 L/min rows of `study1_flow_sweep.csv` | – |
+| Eq. (26) closure (section 9.1) | by hand from `study1_flow_sweep.csv`: T0·`S_gen_C_W_per_K` + `X_out_W` − Q(1 − T0/T_in) + `X_pump_W` against `X_lost_W` | – |
+| Three-wall and four-wall Nu_fd (section 6.2) | `python -c "from coldplate.correlations import nu_fd_H1, nu_fd_H1_3; a = 231 / 713; print(nu_fd_H1(a), nu_fd_H1_3(a))"` | printed |
+| Figures 1, 2 | `python analysis/make_geometry_figures.py` | `figures/geometry_3d_design.png`, `geometry_design_vs_qm.png` |
+| Figures 3–9 and 12–17 (all), with the local Nu values and entry length of section 6.1 on Figure 7 | `python analysis/make_report_figures.py`; one figure: add its key, B (Fig. 3), C (4), D (5), E (6), I (7), F (8), G (9), H (12), J1 (13), J2 (14), J3 (15), J4 (16), J5 (17) | `figures/fig_*.png` |
